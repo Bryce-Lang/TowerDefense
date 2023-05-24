@@ -6,19 +6,32 @@ import com.raylib.java.raymath.Raymath;
 
 // stores coordinate data for each point in the map
 public class map {
+	int screen_width;
+	int screen_height;
+	int menu_margin;
 	
-	final int max_segments = 50;
+	int point_num = 15;
 	
-	int segment_count = 1; // total segments in map
 	ArrayList<Vector2> points = new ArrayList<>(); // arraylist of coordinates starting with enemy entrance and ending with player base
 	
-	public map(int screen_width, int screen_height) {
-		generate_map(screen_width, screen_height);
+	
+	public map(int in_screen_width, int in_screen_height, int in_menu_margin, int in_point_num) {
+		screen_width = in_screen_width;
+		screen_height = in_screen_height;
+		menu_margin = in_menu_margin;
+		point_num = in_point_num;
+		// points array initialized with given point number + 2 for entrance and exit
+		for (int i = 0; i < (point_num + 2); ++i) {
+			Vector2 p = new Vector2(0, 0);
+			points.add(p);
+		}
+		generate_map();
 	}
 	
-	private void generate_map(int screen_width, int screen_height) {
-		int segment_length = screen_height / 15; // length of each segment, defined relative to window size
-		int menu_margin = screen_width / 5; // 20% of the window is reserved for a menu on the left side of the screen
+	private void generate_map() {
+		
+		// path points aren't allowed too close to the edge, margin used in generation to verify
+		int margin_size = screen_width / 16;
 		
 		Random rand = new Random();
 		
@@ -26,84 +39,105 @@ public class map {
 		Vector2 exit = new Vector2();
 		
 		// generates random vertical position for map entrance with a margin on the top and bottom
-		entrance.y = rand.nextInt(screen_height - segment_length + 1 ) + (segment_length / 2);
+		entrance.y = rand.nextInt(screen_height - (margin_size * 2) + 1 ) + margin_size;
 		// x coordinate is determined by the right edge of the menu
 		entrance.x = menu_margin;
+		// add entrance to points array at index 0
+		points.get(0).x = entrance.x;
+		points.get(0).y = entrance.y;
 		
 		// generates random y coordinate for map exit with margin on the top and bottom
-		exit.y = rand.nextInt(screen_height - segment_length + 1) + (segment_length / 2);
+		exit.y = rand.nextInt(screen_height - (margin_size * 2) + 1)  + margin_size;
 		exit.x = screen_width;
+		// add exit to points array at appropriate index
+		points.get(point_num + 1).x = exit.x;
+		points.get(point_num + 1).y = exit.y;
 		
-		// regenerates points until successful or 1000 failed iterations 
-		int iterations = 0;
-		while(generate_points(entrance, exit, segment_length, menu_margin, screen_width, screen_height) != 0 && iterations < 10) {
-			System.out.println("regenerating map...");
-			points = new ArrayList<>(); // points array is reset after every failed iteration
-			segment_count = 1; // segment count reset after every failed iteration
-			++iterations;
+		ArrayList<Vector2> tmp = new ArrayList<>();
+		for (int i = 0; i < point_num; ++i) {
+			
+			// declare and generate a new point in the map
+			Vector2 p = new Vector2();
+			p.x = rand.nextInt(screen_width - menu_margin - margin_size + 1) + (menu_margin + (margin_size / 2));
+			p.y = rand.nextInt(screen_height - margin_size + 1) + (margin_size / 2);
+			
+			// first point needs to be added manually
+			if (i == 0) {
+				tmp.add(p);
+				continue;
+			}
+			
+			// loop through points already in map, verifying that they are reasonably far away, adding if they are
+			for (int j = tmp.size() - 1; j >= 0; --j) {
+				if (Raymath.Vector2Distance(p, tmp.get(j)) < screen_height / point_num) {
+					--i;
+					break;
+				} else if (j == 0) { // every point has been checked, add p to tmp
+					tmp.add(p);
+				}
+			}
 		}
-		if (iterations == 10) {
-			System.out.println("map generation failed.");
-		}
-	}
-	
-	private int generate_points(Vector2 entrance, Vector2 exit, int segment_length, int menu_margin, int screen_width, int screen_height) {
+		//System.out.println("point generation complete");
 		
 		/*
-		 * curr represents the currently generating point in the map; it "walks" in segment_length steps from the entrance 
-		 * in a random direction continuously until it's close to the exit, at which point it jumps there.
+		 * starting from the entrance and exit, add closest points until no more points remain
+		 * then connect last two points
+		 * points are "connected" implicitly; in practice the are just next to each other
+		 * in the points arraylist
 		 */
-		Vector2 curr = new Vector2();
-		Double dir; // direction to walk in (radians), randomized before every step
-		curr.x = entrance.x;
-		curr.y = entrance.y;
-		
-		Random rand = new Random();
-		
-		points.add(entrance);
-		
-		do {
-			System.out.println("generating point...");
-			dir = (rand.nextDouble() * 2.0 * 3.14159265358979); // get random direction in radians
+		Vector2 entrance_lead = new Vector2(entrance.x, entrance.y);
+		Vector2 exit_lead = new Vector2(exit.x, exit.y);
+		// point index used to add new points at correct index in points arraylist
+		int point_index = 1;
+		while(tmp.size() > 0) {
+			// index of the current closest point in tmp
+			int cp_index = 0;
 			
-			curr.x += segment_length * Math.cos(dir);
-			curr.y += segment_length * Math.sin(dir);
-			System.out.println(String.format("x:%f\ny:%f", curr.x, curr.y));
-			System.out.println(Raymath.Vector2Distance(curr, exit));
-			// verifies x coordinate is on screen and within margin; if not, resets curr and skips this iteration
-			if (curr.x < (menu_margin + (segment_length / 2)) || curr.x > (screen_width - (segment_length / 2))) {
-				System.out.println("out of bounds x");
-				curr.x -= segment_length * Math.cos(dir);
-				curr.y -= segment_length * Math.sin(dir);
-				continue;
+			// find closest point in tmp to entrance lead ---------------------------------------------------------------------------
+			for (int i = 0; i < tmp.size(); ++i) {
+				if (Raymath.Vector2Distance(entrance_lead, tmp.get(i)) < Raymath.Vector2Distance(entrance_lead, tmp.get(cp_index))) {
+					cp_index = i;
+				}
 			}
+			// closest point to entrance_lead added to points arraylist
+			points.get(point_index).x = tmp.get(cp_index).x;
+			points.get(point_index).y = tmp.get(cp_index).y;
 			
-			// verifies y coordinate is on screen and within margin; if not, resets curr and skips this iteration
-			if (curr.y < (segment_length / 2) || curr.y > (screen_height - (segment_length / 2))) {
-				System.out.println("out of bounds y");
-				curr.x -= segment_length * Math.cos(dir);
-				curr.y -= segment_length * Math.sin(dir);
-				continue;
-			}
+			// entrance lead moved to closest point remaining in tmp
+			entrance_lead.x = tmp.get(cp_index).x;
+			entrance_lead.y = tmp.get(cp_index).y;
 			
-			// checks if more than max_segments have been generated, if so, resets the generation algorithm to try again
-			if (segment_count >= max_segments) {
-				return 1;
-			}
+			// closest point removed from tmp array so it won't be selected again
+			tmp.remove(cp_index);
 			
-			points.add(curr);
-			segment_count++;
+			// -----------------------------------------------------------------------------------------------------------------------
 			
-			// checks if curr is close to exit, if it is, loop is exited and generation is complete
-			if (Raymath.Vector2Distance(curr, exit) < (segment_length * 2.0)) {
+			// verify that there are more points in tmp to be added, if not break out of loop
+			if (tmp.size() == 0)
 				break;
+			
+			// point index is incremented here so that it can be subtracted from points.size() to get correct index
+			++point_index;
+			
+			// reset cp_index location for exit lead; only important because cp_index could now be out of bounds
+			cp_index = 0;
+			
+			// find closest point in tmp to exit lead -------------------------------------------------------------------------------
+			for (int i = 0; i < tmp.size(); ++i) {
+				if (Raymath.Vector2Distance(exit_lead, tmp.get(i)) < Raymath.Vector2Distance(exit_lead, tmp.get(cp_index))) {
+					cp_index = i;
+				}
 			}
 			
-		} while (true);
-		
-		points.add(exit);
-		segment_count++;
-		
-		return 0;
+			points.get(points.size() - point_index).x = tmp.get(cp_index).x;
+			points.get(points.size() - point_index).y = tmp.get(cp_index).y;
+			
+			exit_lead.x = tmp.get(cp_index).x;
+			exit_lead.y = tmp.get(cp_index).y;
+			
+			tmp.remove(cp_index);
+			
+			// -----------------------------------------------------------------------------------------------------------------------
+		}
 	}
 }
