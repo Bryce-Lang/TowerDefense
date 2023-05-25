@@ -13,6 +13,8 @@ public class Main {
 		Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
 		
 		map map = new map(screen_width, screen_height, screen_width / 5, 15);
+		//screenManager screenManager = new screenManager();
+
 		
 		// main game loop- runs once every frame until window is closed with x button or ESC key
 		while (!rlj.core.WindowShouldClose()) {  // Detect window close button or ESC key
