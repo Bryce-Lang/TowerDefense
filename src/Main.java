@@ -14,6 +14,8 @@ public class Main {
 		
 		map map = new map(screen_width, screen_height, screen_width / 5, 15);
 		
+		rlj.core.SetTargetFPS(60);
+		
 		// main game loop- runs once every frame until window is closed with x button or ESC key
 		while (!rlj.core.WindowShouldClose()) {  // Detect window close button or ESC key
 			
@@ -32,13 +34,7 @@ public class Main {
 			rlj.text.DrawText("reserved for menu", 5, 0, 15, Color.BLACK);
 			rlj.text.DrawText("press [space] to \ngenerate new map", 5, 50, 15, Color.BLACK);
 			
-			// draw points from map
-			for (int i = 0; i < map.points.size(); ++i) {
-				rlj.shapes.DrawCircleV(map.points.get(i), (float) 10.0, Color.BLACK);
-				if (i > 0)
-					rlj.shapes.DrawLineV(map.points.get(i-1) , map.points.get(i), Color.DARKBLUE);
-				rlj.text.DrawText(String.valueOf(i), (int) map.points.get(i).x - 3, (int) map.points.get(i).y - 4, 10, Color.WHITE);
-			}
+			map.draw(rlj);
 			
 			rlj.core.EndDrawing();
 			//---------------------------------------------------------------------------

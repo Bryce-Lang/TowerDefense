@@ -1,7 +1,9 @@
 
 import java.util.ArrayList;
 import java.util.Random;
+import com.raylib.java.Raylib;
 import com.raylib.java.raymath.Vector2;
+import com.raylib.java.core.Color;
 import com.raylib.java.raymath.Raymath;
 
 // stores coordinate data for each point in the map
@@ -30,16 +32,13 @@ public class map {
 	
 	private void generate_map() {
 		
-		// path points aren't allowed too close to the edge, margin used in generation to verify
-		int margin_size = screen_width / 16;
-		
 		Random rand = new Random();
 		
 		Vector2 entrance = new Vector2();
 		Vector2 exit = new Vector2();
 		
 		// generates random vertical position for map entrance with a margin on the top and bottom
-		entrance.y = rand.nextInt(screen_height - (margin_size * 2) + 1 ) + margin_size;
+		entrance.y = rand.nextInt(screen_height);
 		// x coordinate is determined by the right edge of the menu
 		entrance.x = menu_margin;
 		// add entrance to points array at index 0
@@ -47,13 +46,22 @@ public class map {
 		points.get(0).y = entrance.y;
 		
 		// generates random y coordinate for map exit with margin on the top and bottom
-		exit.y = rand.nextInt(screen_height - (margin_size * 2) + 1)  + margin_size;
+		exit.y = rand.nextInt(screen_height);
 		exit.x = screen_width;
 		// add exit to points array at appropriate index
 		points.get(point_num + 1).x = exit.x;
 		points.get(point_num + 1).y = exit.y;
 		
+		ArrayList<Vector2> tmp_points_arr = generate_points(screen_width / 16);
+		
+		connect_points(entrance, exit, tmp_points_arr);
+	}
+	
+	private ArrayList<Vector2> generate_points(int margin_size) {
+		Random rand = new Random();
+
 		ArrayList<Vector2> tmp = new ArrayList<>();
+		
 		for (int i = 0; i < point_num; ++i) {
 			
 			// declare and generate a new point in the map
@@ -77,8 +85,11 @@ public class map {
 				}
 			}
 		}
-		//System.out.println("point generation complete");
 		
+		return tmp;
+	}
+	
+	private void connect_points(Vector2 entrance, Vector2 exit, ArrayList<Vector2> tmp) {
 		/*
 		 * starting from the entrance and exit, add closest points until no more points remain
 		 * then connect last two points
@@ -138,6 +149,16 @@ public class map {
 			tmp.remove(cp_index);
 			
 			// -----------------------------------------------------------------------------------------------------------------------
+		}
+	}
+	
+	public void draw(Raylib rlj) {
+		// draw points from map
+		for (int i = 0; i < points.size(); ++i) {
+			rlj.shapes.DrawCircleV(points.get(i), (float) 10.0, Color.BLACK);
+			if (i > 0)
+				rlj.shapes.DrawLineV(points.get(i-1) , points.get(i), Color.DARKBLUE);
+			rlj.text.DrawText(String.valueOf(i), (int) points.get(i).x - 3, (int) points.get(i).y - 4, 10, Color.WHITE);
 		}
 	}
 }
