@@ -13,6 +13,8 @@ public class Main {
 		Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
 		
 		map map = new map(screen_width, screen_height, screen_width / 5, 15);
+		//screenManager screenManager = new screenManager();
+
 		
 		rlj.core.SetTargetFPS(60);
 		
