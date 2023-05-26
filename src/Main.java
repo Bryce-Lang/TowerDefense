@@ -12,7 +12,7 @@ public class Main {
 		final int screen_height = 540;
 		Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
 		
-		map map = new map(screen_width, screen_height, screen_width / 5, 15);
+		map map = new map(screen_width, screen_height, screen_width / 5, 8);
 		//screenManager screenManager = new screenManager();
 
 		
@@ -23,7 +23,7 @@ public class Main {
 			
 			// regenerate map on space press
 			if (rlj.core.IsKeyReleased(KEY_SPACE)) {
-				map = new map(screen_width, screen_height, screen_width / 5, 15);
+				map = new map(screen_width, screen_height, screen_width / 5, 8);
 			}
 			
 			// Draw to screen here ------------------------------------------------------
