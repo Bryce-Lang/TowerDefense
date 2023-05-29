@@ -16,7 +16,16 @@ public class Main {
 		float timer = 0;
 		int level = 3;
 		long offset = 0;
+		Vector2 mouse_position = new Vector2(0.0f,0.0f);
 		Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
+		
+		Texture2D new_map_button = LoadTexture("new_map.png");
+		Rectangle map_rectangle = new Rectangle(0,0,new_map_button.width,new_map_button.height);
+		Rectangle map_bound = new Rectangle(15,50,new_map_button.width,new_map_button.height);
+		
+		Texture2D exit_button = LoadTexture("exit.png");
+		Rectangle exit_rectangle = new Rectangle(0,0,exit_button.width,exit_button.height);
+		Rectangle exit_bound = new Rectangle(15,120,exit_button.width,exit_button.height);
 		
 		map map = new map(screen_width, screen_height, screen_width / 5, 32);
 		//screenManager screenManager = new screenManager();
@@ -34,6 +43,9 @@ public class Main {
 		
 		// main game loop- runs once every frame until window is closed with x button or ESC key
 		while (!rlj.core.WindowShouldClose()) {  // Detect window close button or ESC key
+			
+			mouse_position = GetMousePosition();
+			
 			// regenerate map on space press
 			if (rlj.core.IsKeyReleased(KEY_SPACE)) {
 				map = new map(screen_width, screen_height, screen_width / 5, 32);
@@ -50,6 +62,25 @@ public class Main {
 			rlj.text.DrawText("reserved for menu", 5, 0, 15, Color.RAYWHITE);
 			rlj.text.DrawText("press [space] to \ngenerate new map", 5, 50, 15, Color.RAYWHITE);
 			rlj.text.DrawText("Level: " + level, 200, 5, 15, Color.RAYWHITE);
+			
+			
+			rlj.textures.DrawTextureRec(new_map_button, map_rectangle, new Vector2(15,50), Color.RAYWHITE);
+			rlj.textures.DrawTextureRec(exit_button, exit_rectangle, new Vector2(15,120), Color.RAYWHITE);
+
+			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map_bound)) {
+				if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+					map = new map(screen_width, screen_height, screen_width / 5, 32);
+				}
+			}
+
+			if (rlj.shapes.CheckCollisionPointRec(mouse_position, exit_bound)) {
+				if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+					rlj.core.WindowShouldClose();
+					return;
+				}
+			}
+			
+			
 			map.draw(rlj);
 			//let enemies run along the path
 			for(int i = 0; i < enemies.size(); i++){
