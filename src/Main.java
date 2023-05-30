@@ -40,6 +40,7 @@ public class Main {
 				timer = 0;
 			}
 			timer += 0.2f;
+			
 			// Draw to screen here ------------------------------------------------------
 			rlj.core.BeginDrawing();
 			

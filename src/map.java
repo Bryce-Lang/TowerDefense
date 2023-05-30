@@ -28,10 +28,9 @@ public class map {
 	}
 	
 	private void generate_map() {
-		boolean reject;
+		int map_gen_attempts = 0;
 		// attempts to create a map without overlap 10000 times, ends when one is made
-		for (int i = 0; i < 10000; ++i) {
-			reject = false;
+		do {
 			
 			debug_points = new ArrayList<>();
 			
@@ -53,26 +52,32 @@ public class map {
 			
 			connect_points(entrance, exit, tmp_points_arr);
 			
-			smooth();
+			points = smooth(points);
 			
-			verify_points:
-			for (int j = 0; j < points.size(); ++j) {
-				for (int k = 0; k < points.size(); ++k) {
-					if (Raymath.Vector2Distance(points.get(j), points.get(k)) < 10.0 && Math.abs(j - k) > 10) {
-						//System.out.println("OVERLAP: " + j + " " + k); TODO: delete
-						reject = true;
-						break verify_points;
-					}
-					if (points.get(j).x > screen_width || points.get(j).x < menu_margin || points.get(j).y > screen_height || points.get(j).y < 0.0) {
-						reject = true;
-						break verify_points;
-					}
+			++map_gen_attempts;
+		} while (!verify_points() && map_gen_attempts < 10000);
+	}
+	
+	private boolean verify_points() {
+		for (int j = 0; j < points.size(); ++j) {
+			for (int k = 0; k < points.size(); ++k) {
+				// checks if points that are more than 10 indices away in the arraylist are closer than 10 units
+				if (Raymath.Vector2Distance(points.get(j), points.get(k)) < 10.0 &&
+						Math.abs(j - k) > 10) {
+					
+					return false;
 				}
 			}
-			if (!reject)
-				break;
+			// checks that the current point is on screen
+			if (points.get(j).x > screen_width ||
+					points.get(j).x < menu_margin ||
+					points.get(j).y > screen_height ||
+					points.get(j).y < 0.0) {
+				
+				return false;
+			}
 		}
-		
+		return true;
 	}
 	
 	// generates a random point around the perimeter of the map area
@@ -128,8 +133,8 @@ public class map {
 				continue;
 			}
 			
-			// loop through points already in map, verifying that they are reasonably far away, adding to points if they are
-			// otherwise tries again
+			// loop through points already in map, verifying that they are reasonably far away
+			// adds to tmp if they are, otherwise tries again
 			for (int j = tmp.size() - 1; j >= 0; --j) {
 				// reject point if too close to another
 				if (Raymath.Vector2Distance(p, tmp.get(j)) < (screen_height * 3.0 / point_num)) {
@@ -212,58 +217,57 @@ public class map {
 		}
 	}
 	
-	// calculates smoothed points using a mishmash of (tweaked) Catmull-Rom velocity estimation with cubic bezier curve calculation
-	private void smooth() {
+	// calculates smoothed points using a mishmash of (tweaked) Catmull-Rom velocity estimation with quadratic bezier curve calculation
+	private ArrayList<Vector2> smooth(ArrayList<Vector2> in_points) {
 		
 		// first step: add points beyond the entrance and exit as splines don't go to end points -------------------------------------
-		Vector2 entrance_ghost = reflect(points.get(1), points.get(0));
-		// we want entrance_ghost to be a reflection of points[1] over the border that entrance is on, so we set it's x or y
+		Vector2 entrance_ghost = reflect(in_points.get(1), in_points.get(0));
+		// we want entrance_ghost to be a reflection of in_points[1] over the border that entrance is on, so we set it's x or y
 		// based on whether entrance is on a vertical or horizontal border
-		if (points.get(0).y == 0.0 || points.get(0).y == screen_height) {
-			entrance_ghost.x = points.get(1).x;
+		if (in_points.get(0).y == 0.0 || in_points.get(0).y == screen_height) {
+			entrance_ghost.x = in_points.get(1).x;
 		} else {
-			entrance_ghost.y = points.get(1).y;
+			entrance_ghost.y = in_points.get(1).y;
 		}
-		points.add(0, entrance_ghost);
+		in_points.add(0, entrance_ghost);
 		
-		Vector2 exit_ghost = reflect(points.get(points.size() - 2), points.get(points.size() - 1));
+		Vector2 exit_ghost = reflect(in_points.get(in_points.size() - 2), in_points.get(in_points.size() - 1));
 		// we do the same for exit_ghost that we did for entrance_ghost
-		if (points.get(points.size() - 1).y == 0.0 || points.get(points.size() - 1).y == screen_height) {
-			exit_ghost.x = points.get(points.size() - 2).x;
+		if (in_points.get(in_points.size() - 1).y == 0.0 || in_points.get(in_points.size() - 1).y == screen_height) {
+			exit_ghost.x = in_points.get(in_points.size() - 2).x;
 		} else {
-			exit_ghost.y = points.get(points.size() - 2).y;
+			exit_ghost.y = in_points.get(in_points.size() - 2).y;
 		}
-		points.add(exit_ghost);
+		in_points.add(exit_ghost);
 		
 		// ---------------------------------------------------------------------------------------------------------------------------
 		
-		// second step: loop through points ArrayList, adding appropriate number of points based on distance between points ----------
+		// second step: loop through in_points ArrayList, adding appropriate number of points based on distance between points -------
 		// a new arraylist is made to simplify indexing; we copy points in as we go. this will be returned when finished
 		ArrayList<Vector2> tmp = new ArrayList<>();
 		
-		tmp.add(entrance_ghost);
-		tmp.add(exit_ghost);
-		// loop over all points
-		for (int i = 1; i < (points.size() - 2); ++i) {
+		// loop over all points, generating smooth transitions between them
+		for (int i = 1; i < (in_points.size() - 2); ++i) {
 
-			tmp.add(tmp.size() - 2, points.get(i));
+			tmp.add(in_points.get(i));
 			debug_points.add(points.get(i));  // TODO: delete
 			
-			// estimate control point ------------------------------------------------------------------------------------------------
-			Vector2 curr_control = Raymath.Vector2Subtract(points.get(i + 1), points.get(i - 1));
+			// estimate control point curr_control------------------------------------------------------------------------------------
+			Vector2 curr_control = Raymath.Vector2Subtract(in_points.get(i + 1), in_points.get(i - 1));
 			
 			// next, we shift the point to be perpendicular to the vector from the current point to the average of the two surrounding points
-			
-			Float prev_dist = Raymath.Vector2Distance(points.get(i), points.get(i - 1));
-			Float next_dist = Raymath.Vector2Distance(points.get(i), points.get(i + 1));
+			Float prev_dist = Raymath.Vector2Distance(in_points.get(i), in_points.get(i - 1));
+			Float next_dist = Raymath.Vector2Distance(in_points.get(i), in_points.get(i + 1));
 			Float offset = prev_dist / (prev_dist + next_dist);
-			Vector2 mid = Raymath.Vector2Lerp(points.get(i - 1), points.get(i + 1), offset);
-			Vector2 norm = Raymath.Vector2Subtract(points.get(i), mid);
+			Vector2 mid = Raymath.Vector2Lerp(in_points.get(i - 1), in_points.get(i + 1), offset);
+			Vector2 norm = Raymath.Vector2Subtract(in_points.get(i), mid);
 			float len = length(norm);
-			// still a bug here that very occasionally results in len being equal to zero; this is the be fix I can think of
-			// TODO: hunt down len = 0.0 bug
-			if (len == 0.0)
-				len += 0.001;
+			// if this point lies on the line between it's neighbors, len = 0 and norm x = 0.0 and y = 0.0
+			// we fix this by resetting norm to point to the next point
+			if (len == 0.0) {
+				norm = Raymath.Vector2Subtract(points.get(i), points.get(i + 1));
+				len = length(norm);
+			}
 			// normalize the vector and rotate it 90 degrees
 			norm = new Vector2(-norm.y / len, norm.x / len);
 			float control_len = length(curr_control);
@@ -285,20 +289,26 @@ public class map {
 			
 			// Estimate control point near the next point ----------------------------------------------------------------------------
 			// this is done in similar fashion to curr_control
-			Vector2 next_control = Raymath.Vector2Subtract(points.get(i + 2), points.get(i));
+			Vector2 next_control = Raymath.Vector2Subtract(in_points.get(i + 2), in_points.get(i));
 			
 			// next, we shift the point to be perpendicular to the vector from the current point to the average of the two surrounding points
-			prev_dist = Raymath.Vector2Distance(points.get(i + 1), points.get(i));
-			next_dist = Raymath.Vector2Distance(points.get(i + 1), points.get(i + 2));
+			prev_dist = Raymath.Vector2Distance(in_points.get(i + 1), in_points.get(i));
+			next_dist = Raymath.Vector2Distance(in_points.get(i + 1), in_points.get(i + 2));
 			offset = prev_dist / (prev_dist + next_dist);
-			mid = Raymath.Vector2Lerp(points.get(i), points.get(i + 2), offset);
-			norm = Raymath.Vector2Subtract(points.get(i + 1), mid);
+			mid = Raymath.Vector2Lerp(in_points.get(i), in_points.get(i + 2), offset);
+			norm = Raymath.Vector2Subtract(in_points.get(i + 1), mid);
 			
 			// normalize the vector and rotate it 90 degrees
 			len = length(norm);
-			// still a bug here that very occasionally results in len being equal to zero; this is the be fix I can think of
-			if (len == 0.0)
-				len += 0.001;
+			// if the point lies on the line between it's neighboring points, len = 0 and norm x = 0.0 and y = 0.0
+			// we can fix this by detecting it, and reseting norm to point toward the last point
+			if (len == 0.0) {
+				norm = Raymath.Vector2Subtract(points.get(i + 1), points.get(i));
+				len = length(norm);
+				System.out.println("mid x: " + mid.x + " y: " + mid.y);
+				System.out.println("point x: " + in_points.get(i + 1).x + " y: " + in_points.get(i + 1).y);
+				System.out.println("norm x: " + norm.x + " y: " + norm.y);
+			}
 			norm = new Vector2(-norm.y / len, norm.x / len);
 			
 			control_len = length(next_control);
@@ -306,7 +316,7 @@ public class map {
 			// norm isn't necessarily on the same side of the point as next_control
 			// we want it to be on the opposite side, so we flip it if control_len < the length of next_control + norm
 			diff = Raymath.Vector2Add(next_control, norm);
-			diff_len = length(diff);
+			diff_len = length(diff); 
 			if (control_len < diff_len) {
 				norm = reflect(norm, new Vector2(0, 0));
 			}
@@ -321,7 +331,7 @@ public class map {
 			// here we reduce the distance of the control points until they no longer overlap
 			boolean over;
 			for (int j = 0; j < 6; ++j){
-				over = Raymath.Vector2Distance(points.get(i), Raymath.Vector2Add(curr_control, points.get(i))) > Raymath.Vector2Distance(points.get(i), Raymath.Vector2Add(next_control, points.get(i + 1)));
+				over = Raymath.Vector2Distance(in_points.get(i), Raymath.Vector2Add(curr_control, in_points.get(i))) > Raymath.Vector2Distance(in_points.get(i), Raymath.Vector2Add(next_control, in_points.get(i + 1)));
 				if (!over)
 					break;
 				curr_control = Raymath.Vector2Divide(curr_control, new Vector2((float) 1.5, (float) 1.5));
@@ -332,7 +342,7 @@ public class map {
 			// here we detect and remove those by reducing control point distance
 			boolean pinch;
 			for (int j = 0; j < 6; ++j){
-				pinch = Raymath.Vector2Distance(points.get(i + 1), Raymath.Vector2Add(curr_control, points.get(i))) < Raymath.Vector2Distance(points.get(i + 1), Raymath.Vector2Add(next_control, points.get(i + 1)));
+				pinch = Raymath.Vector2Distance(in_points.get(i + 1), Raymath.Vector2Add(curr_control, in_points.get(i))) < Raymath.Vector2Distance(in_points.get(i + 1), Raymath.Vector2Add(next_control, in_points.get(i + 1)));
 				if (!pinch)
 					break;
 				curr_control = Raymath.Vector2Divide(curr_control, new Vector2((float) 1.5, (float) 1.5));
@@ -340,47 +350,42 @@ public class map {
 			}
 			
 			// then we put them in place by adding them to their respective points
-			curr_control = Raymath.Vector2Add(curr_control, points.get(i));
-			next_control = Raymath.Vector2Add(next_control, points.get(i + 1));
+			curr_control = Raymath.Vector2Add(curr_control, in_points.get(i));
+			next_control = Raymath.Vector2Add(next_control, in_points.get(i + 1));
 			
 			debug_points.add(curr_control); // TODO: delete
 			debug_points.add(next_control); // TODO: delete
 			
 			// distance from current point to next point
-			int p_distance = (int) Raymath.Vector2Distance(points.get(i), points.get(i+1));
+			int p_distance = (int) Raymath.Vector2Distance(in_points.get(i), in_points.get(i+1));
 			
-			// iterates between current point and the next, adding p_distance/5 number of points evenly spread
+			// iterates between current point and the next, adding roughly evenly spread points between them
 			int segs = (int) (p_distance / (Math.sqrt(point_num) + 2)) + 6;
 			for (int j = 0; j < segs; ++j) {
-				tmp.add(tmp.size() - 2, smooth_lerp(i, j * ((float) 1.0 / segs), curr_control, next_control));
+				tmp.add(smooth_lerp(in_points, i, j * ((float) 1.0 / segs), curr_control, next_control));
 			}
 		}
 		// --------------------------------------------------------------------------------------------------------------------------
 		
-		// remove end points used for interpolation
-		tmp.remove(0);
-		tmp.remove(tmp.size() - 1);
-		tmp.remove(tmp.size() - 1);
+		// exit point needs to be added manually
+		tmp.add(in_points.get(in_points.size() - 2));
 		
-		// last point needs to be added manually
-		tmp.add(points.get(points.size() - 2));
-		
-		points = tmp;
+		return tmp;
 	}
 	
 	// quadratic bezier lerping given current point index and estimated control points
-	private Vector2 smooth_lerp(int p_ind, float by, Vector2 curr_control, Vector2 next_control) {
+	private Vector2 smooth_lerp(ArrayList<Vector2> unsmooth_points, int p_ind, float by, Vector2 curr_control, Vector2 next_control) {
 		// Polynomial coefficients used in place of lerps to speed up computation
 		// instead of using Raymath.etc for everything it's easier just to split them into x and y and do it normally
-		float t_3_x = (by * by * by) * ( -(points.get(p_ind).x) + (3 * curr_control.x) - (3 * next_control.x) + (points.get(p_ind + 1).x));
-		float t_2_x = (by * by) * ((3 * points.get(p_ind).x - (6 * curr_control.x) + (3 * next_control.x)));
-		float t_x = by * (-(3 * points.get(p_ind).x) + (3 * curr_control.x));
+		float t_3_x = (by * by * by) * ( -(unsmooth_points.get(p_ind).x) + (3 * curr_control.x) - (3 * next_control.x) + (unsmooth_points.get(p_ind + 1).x));
+		float t_2_x = (by * by) * ((3 * unsmooth_points.get(p_ind).x - (6 * curr_control.x) + (3 * next_control.x)));
+		float t_x = by * (-(3 * unsmooth_points.get(p_ind).x) + (3 * curr_control.x));
 		
-		float t_3_y = (by * by * by) * ( -(points.get(p_ind).y) + (3 * curr_control.y) - (3 * next_control.y) + (points.get(p_ind + 1).y));
-		float t_2_y = (by * by) * ((3 * points.get(p_ind).y - (6 * curr_control.y) + (3 * next_control.y)));
-		float t_y = by * (-(3 * points.get(p_ind).y) + (3 * curr_control.y));
+		float t_3_y = (by * by * by) * ( -(unsmooth_points.get(p_ind).y) + (3 * curr_control.y) - (3 * next_control.y) + (unsmooth_points.get(p_ind + 1).y));
+		float t_2_y = (by * by) * ((3 * unsmooth_points.get(p_ind).y - (6 * curr_control.y) + (3 * next_control.y)));
+		float t_y = by * (-(3 * unsmooth_points.get(p_ind).y) + (3 * curr_control.y));
 		
-		return new Vector2((points.get(p_ind).x + t_x + t_2_x + t_3_x), (points.get(p_ind).y + t_y + t_2_y + t_3_y));
+		return new Vector2((unsmooth_points.get(p_ind).x + t_x + t_2_x + t_3_x), (unsmooth_points.get(p_ind).y + t_y + t_2_y + t_3_y));
 	}
 	
 	// "reflects" one point over another
