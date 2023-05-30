@@ -19,7 +19,7 @@ public class Main {
 		Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
 		
 		map map = new map(screen_width, screen_height, screen_width / 5, 32);
-		//screenManager screenManager = new screenManager();
+		
 		//checks if the previous level is cleared. Increments level counter, and adds in a new set of enemies.
 		if(levelCleared()){
 			level++;

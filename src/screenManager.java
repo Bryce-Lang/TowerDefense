@@ -2,6 +2,9 @@ import com.raylib.java.Raylib;
 import com.raylib.java.core.Color;
 import com.raylib.java.core.input.Mouse.MouseButton;
 import static com.raylib.java.core.input.Keyboard.KEY_ENTER;
+import static com.raylib.java.core.input.Keyboard.KEY_SPACE;
+
+import java.util.ArrayList;
 
 public class screenManager {
 
@@ -12,13 +15,24 @@ public class screenManager {
         GAMEPLAY,
         ENDING
     }
-
+    static ArrayList<Enemy> enemies = new ArrayList<>();
     public static void main(String[] args) {
         // Initialization
-        final int screenWidth = 800;
-        final int screenHeight = 450;
-
-        Raylib rlj = new Raylib(screenWidth, screenHeight, "raylib [core] example - basic screen manager");
+        final int screen_width = 800;
+        final int screen_height = 450;
+        int level = 3;
+        long offset = 0;
+        float timer = 0;
+        Raylib rlj = new Raylib(screen_width, screen_height, "raylib [core] example - basic screen manager");
+        map map = new map(screen_width, screen_height, screen_width / 5, 32);
+    	if(levelCleared()){
+			level++;
+			for(int i = 0; i < level; i++){
+				Enemy enemy = new Enemy(100, map.points.get(0).x, map.points.get(0).y, offset);
+				enemies.add(enemy);
+				offset += 10;
+			}
+		}
         GameScreen currentScreen = GameScreen.LOGO;
 
         // TODO: Initialize all required variables and load all required data here!
@@ -54,7 +68,11 @@ public class screenManager {
                     break;
                 case GAMEPLAY:
                     // TODO: Update GAMEPLAY screen variables here!
-
+                	if (rlj.core.IsKeyReleased(KEY_SPACE)) {
+        				map = new map(screen_width, screen_height, screen_width / 5, 32);
+        				timer = 0;
+        			}
+        			timer += 0.2f;
                     // Press enter to change to ENDING screen
                     if (isKeyPressed(rlj, KEY_ENTER) || isMouseButtonPressed(rlj,MouseButton.MOUSE_BUTTON_LEFT)) { // 13 is the key code for Enter key
                         currentScreen = GameScreen.ENDING;
@@ -80,25 +98,34 @@ public class screenManager {
             switch(currentScreen) {
                 case LOGO:
                     // TODO: Draw LOGO screen here!
-                    rlj.text.DrawText("LOGO SCREEN", 20, 20, 40, Color.LIGHTGRAY);
+                    rlj.text.DrawText("LOGO SCREEN", 20, 20, 40, Color.GOLD);
                     rlj.text.DrawText("WAIT for 2 SECONDS...", 290, 220, 20, Color.GRAY);
                     break;
                 case TITLE:
                     // TODO: Draw TITLE screen here!
-                    rlj.shapes.DrawRectangle(0, 0, screenWidth, screenHeight, Color.GREEN);
+                    rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.GREEN);
                     rlj.text.DrawText("TITLE SCREEN", 20, 20, 40, Color.DARKGREEN);
                     rlj.text.DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, Color.DARKGREEN);
                     break;
                     
                 case GAMEPLAY:
                     // TODO: Draw GAMEPLAY screen here!
-                    rlj.shapes.DrawRectangle(0, 0, screenWidth, screenHeight, Color.PURPLE);
-                    rlj.text.DrawText("GAMEPLAY SCREEN", 20, 20, 40, Color.MAROON);
+                    rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.PURPLE);
+                    //rlj.text.DrawText("GAMEPLAY SCREEN", 20, 20, 40, Color.MAROON);
+                    rlj.shapes.DrawRectangle(0, 0, screen_width / 5, screen_height, Color.DARKGRAY);
+        			rlj.text.DrawText("reserved for menu", 5, 0, 15, Color.RAYWHITE);
+        			rlj.text.DrawText("press [space] to \ngenerate new map", 5, 50, 15, Color.RAYWHITE);
+        			rlj.text.DrawText("Level: " + level, 200, 5, 15, Color.RAYWHITE);
+        			map.draw(rlj);
+        			//let enemies run along the path
+        			for(int i = 0; i < enemies.size(); i++){
+        				enemies.get(i).draw(rlj, map, timer);
+        			}
                     rlj.text.DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, Color.MAROON);
                     break;
                 case ENDING:
                     // TODO: Draw ENDING screen here!
-                    rlj.shapes.DrawRectangle(0, 0, screenWidth, screenHeight, Color.BLUE);
+                    rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.BLUE);
                     rlj.text.DrawText("ENDING SCREEN", 20, 20, 40, Color.DARKBLUE);
                     rlj.text.DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, Color.DARKBLUE);
                     break;
@@ -137,5 +164,9 @@ public class screenManager {
     private static boolean isMouseButtonPressed(Raylib rlj, int mOUSE_BUTTON_LEFT) {
         return rlj.core.IsMouseButtonPressed(MouseButton.MOUSE_BUTTON_LEFT);
     }
-    
+    public static boolean levelCleared(){
+		if(enemies.size() == 0)
+			return true;
+		return false;
+	}
 }
