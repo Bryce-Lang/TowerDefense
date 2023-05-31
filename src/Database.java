@@ -10,7 +10,7 @@ public class Database {
 	 */
 	private Connection connect() {
 		Connection con = null;
-		String url="jdbc:mysql://localhost:3307/TowerDefenseDB";
+		String url="jdbc:mysql://localhost:3306/towerdefensedb";
 		String username = "root";
 		String password = "";
 		
@@ -65,7 +65,7 @@ public class Database {
 	
 	public static void main(String[] args) {
 		Database data = new Database();
-		data.selectAll("Enemies");
+		data.selectAll("enemies");
 	}
 }
 

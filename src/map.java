@@ -16,6 +16,12 @@ public class map {
 	// arraylist of coordinates starting with enemy entrance and ending with player base
 	ArrayList<Vector2> points = new ArrayList<>();
 	
+	// Total length of the map
+	float map_length = 0;
+	
+	// average distance between points in the map
+	float average_dist = 0;
+	
 	// TODO: delete; only used for debugging
 	ArrayList<Vector2> debug_points = new ArrayList<>();
 	
@@ -56,8 +62,11 @@ public class map {
 			
 			++map_gen_attempts;
 		} while (!verify_points() && map_gen_attempts < 10000);
+		
+		points = normalize_points(points);
 	}
 	
+	// checks for overlaps and out of bounds points
 	private boolean verify_points() {
 		for (int j = 0; j < points.size(); ++j) {
 			for (int k = 0; k < points.size(); ++k) {
@@ -248,9 +257,8 @@ public class map {
 		
 		// loop over all points, generating smooth transitions between them
 		for (int i = 1; i < (in_points.size() - 2); ++i) {
-
+			
 			tmp.add(in_points.get(i));
-			debug_points.add(points.get(i));  // TODO: delete
 			
 			// estimate control point curr_control------------------------------------------------------------------------------------
 			Vector2 curr_control = Raymath.Vector2Subtract(in_points.get(i + 1), in_points.get(i - 1));
@@ -361,7 +369,7 @@ public class map {
 			
 			// iterates between current point and the next, adding roughly evenly spread points between them
 			int segs = (int) (p_distance / (Math.sqrt(point_num) + 2)) + 6;
-			for (int j = 0; j < segs; ++j) {
+			for (int j = 1; j < segs; ++j) {
 				tmp.add(smooth_lerp(in_points, i, j * ((float) 1.0 / segs), curr_control, next_control));
 			}
 		}
@@ -397,6 +405,41 @@ public class map {
 	// I don't yet know why but Raymath.Vector2Length breaks things hence this
 	private float length(Vector2 vec) {
 		return (float) Math.sqrt(Math.abs(vec.x * vec.x + vec.y * vec.y));
+	}
+	
+	// returns arraylist of distances between the points in the map, also sets map_length
+	private ArrayList<Vector2> normalize_points(ArrayList<Vector2> in_points) {
+		ArrayList<Vector2> norm_points = new ArrayList<>();
+		// distance from each point to the next
+		ArrayList<Float> point_dists = new ArrayList<>();
+		for (int i = 0; i < (points.size() - 1); ++i) {
+			float point_dist = Raymath.Vector2Distance(in_points.get(i), in_points.get(i + 1));
+			point_dists.add(point_dist);
+			map_length += point_dist;
+		}
+		average_dist = map_length / in_points.size();
+		for (int i = 0; i < in_points.size(); ++i) {
+			float point_dist = average_dist * i;
+			int j = 0;
+			while (point_dist > point_dists.get(j)) {
+				point_dist -= point_dists.get(j);
+				++j;
+			}
+			norm_points.add(Raymath.Vector2Lerp(in_points.get(j), in_points.get(j + 1), point_dist / point_dists.get(j)));
+		}
+		norm_points.add(in_points.get(in_points.size() - 1));
+		
+		return norm_points;
+	}
+	
+	// returns Vector2 location on the map given a float percentage 0.0-1.0
+	public Vector2 get_loc(float by) {
+		if (by > 1.0 || by < 0.0) {
+			return new Vector2(0, 0);
+		}
+		int index = (int) ((map_length / average_dist) * by);
+		float point_dist = ((map_length * by) % average_dist) / average_dist;
+		return Raymath.Vector2Lerp(points.get(index), points.get(index + 1), point_dist);
 	}
 	
 	public void draw(Raylib rlj) {
