@@ -28,7 +28,7 @@ public class screenManager {
     	if(levelCleared()){
 			level++;
 			for(int i = 0; i < level; i++){
-				Enemy enemy = new Enemy(100, map.points.get(0).x, map.points.get(0).y, offset);
+				Enemy enemy = new Enemy(100, map.points.get(0).x, map.points.get(0).y, offset, 500);
 				enemies.add(enemy);
 				offset += 10;
 			}
