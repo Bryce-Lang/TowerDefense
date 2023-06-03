@@ -26,18 +26,18 @@ public class Main {
 		// window size, independent of actual screen sizeVector2 mouse_position = new Vector2(0.0f,0.0f);
 		Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
 
-		Texture2D map0 = LoadTexture("C:\\Users\\kk\\Documents\\myProject\\cs321\\map0.png");
+		Texture2D map0 = LoadTexture("map0.png");
 		Rectangle map0_rectangle = new Rectangle(0,0,map0.width,map0.height);
 		Rectangle map0_bound = new Rectangle(15,50,map0.width,map0.height);
-		Texture2D map1 = LoadTexture("C:\\Users\\kk\\Documents\\myProject\\cs321\\map1.png");
+		Texture2D map1 = LoadTexture("map1.png");
 		Rectangle map1_rectangle = new Rectangle(0,0,map1.width,map1.height);
 		Rectangle map1_bound = new Rectangle(15,50,map1.width,map1.height);
 
 
-		Texture2D exit0 = LoadTexture("C:\\Users\\kk\\Documents\\myProject\\cs321\\exit0.png");
+		Texture2D exit0 = LoadTexture("exit0.png");
 		Rectangle exit0_rectangle = new Rectangle(0,0,exit0.width,exit0.height);
 		Rectangle exit0_bound = new Rectangle(15,120,exit0.width,exit0.height);
-		Texture2D exit1 = LoadTexture("C:\\Users\\kk\\Documents\\myProject\\cs321\\exit1.png");
+		Texture2D exit1 = LoadTexture("exit1.png");
 		Rectangle exit1_rectangle = new Rectangle(0,0,exit1.width,exit1.height);
 		Rectangle exit1_bound = new Rectangle(15,50,exit1.width,exit1.height);
 		
