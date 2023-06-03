@@ -58,12 +58,7 @@ public class Main {
 				map = new map(screen_width, screen_height, screen_width / 5, 32);
 				timer = 0;
 			}*/
-			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map0_bound)) {
-				rlj.textures.DrawTextureRec(map1, map1_rectangle, new Vector2(15,50), Color.RAYWHITE);
-				if (rlj.core.IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-					resetMap();
-				}
-			}
+			
 			timer += 0.001f;
 			
 			// Draw to screen here ------------------------------------------------------
@@ -81,7 +76,15 @@ public class Main {
 			rlj.textures.DrawTextureRec(map0, map0_rectangle, new Vector2(15,50), Color.RAYWHITE);
 			rlj.textures.DrawTextureRec(exit0, exit0_rectangle, new Vector2(15,120), Color.RAYWHITE);
 
-
+			
+			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map0_bound)) {
+				rlj.textures.DrawTextureRec(map1, map1_rectangle, new Vector2(15,50), Color.RAYWHITE);
+				if (rlj.core.IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+					resetMap();
+				}
+			}
+			
+			
 			if (rlj.shapes.CheckCollisionPointRec(mouse_position, exit0_bound)) {
 				rlj.textures.DrawTextureRec(exit1, exit1_rectangle, new Vector2(15,120), Color.RAYWHITE);
 				if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
