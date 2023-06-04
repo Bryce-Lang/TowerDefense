@@ -28,13 +28,20 @@ public class Main {
 		
 		Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
 
-		Texture2D new_map_button = LoadTexture("new_map.png");
-		Rectangle map_rectangle = new Rectangle(0,0,new_map_button.width,new_map_button.height);
-		Rectangle map_bound = new Rectangle(15,50,new_map_button.width,new_map_button.height);
+		Texture2D map0 = LoadTexture("map0.png");
+		Rectangle map0_rectangle = new Rectangle(0,0,map0.width,map0.height);
+		Rectangle map0_bound = new Rectangle(15,50,map0.width,map0.height);
+		Texture2D map1 = LoadTexture("map1.png");
+		Rectangle map1_rectangle = new Rectangle(0,0,map1.width,map1.height);
+		Rectangle map1_bound = new Rectangle(15,50,map1.width,map1.height);
 
-		Texture2D exit_button = LoadTexture("exit.png");
-		Rectangle exit_rectangle = new Rectangle(0,0,exit_button.width,exit_button.height);
-		Rectangle exit_bound = new Rectangle(15,120,exit_button.width,exit_button.height);
+
+		Texture2D exit0 = LoadTexture("exit0.png");
+		Rectangle exit0_rectangle = new Rectangle(0,0,exit0.width,exit0.height);
+		Rectangle exit0_bound = new Rectangle(15,120,exit0.width,exit0.height);
+		Texture2D exit1 = LoadTexture("exit1.png");
+		Rectangle exit1_rectangle = new Rectangle(0,0,exit1.width,exit1.height);
+		Rectangle exit1_bound = new Rectangle(15,50,exit1.width,exit1.height);
 		
 		//Initial game setup
 		//if(levelCleared()){
@@ -80,18 +87,26 @@ public class Main {
 			
 			// draw menu on left of screen
 			rlj.shapes.DrawRectangle(0, 0, screen_width / 5, screen_height, Color.DARKGRAY);
-			rlj.text.DrawText("reserved for menu", 5, 0, 15, Color.RAYWHITE);
-			rlj.text.DrawText("press [space] to \ngenerate new map", 5, 50, 15, Color.RAYWHITE);
+			//rlj.text.DrawText("reserved for menu", 5, 0, 15, Color.RAYWHITE);
+			//rlj.text.DrawText("press [space] to \ngenerate new map", 5, 50, 15, Color.RAYWHITE);
 			rlj.text.DrawText("Level: " + level, 200, 5, 15, Color.RAYWHITE);
 			
 			rlj.text.DrawText("Time: " + timer, 200, 55, 15, Color.RAYWHITE);
+			
+			rlj.textures.DrawTextureRec(map0, map0_rectangle, new Vector2(15,50), Color.RAYWHITE);
+			rlj.textures.DrawTextureRec(exit0, exit0_rectangle, new Vector2(15,120), Color.RAYWHITE);
 
-			rlj.textures.DrawTextureRec(new_map_button, map_rectangle, new Vector2(15,50), Color.RAYWHITE);
-			rlj.textures.DrawTextureRec(exit_button, exit_rectangle, new Vector2(15,120), Color.RAYWHITE);
-
-
-
-			if (rlj.shapes.CheckCollisionPointRec(mouse_position, exit_bound)) {
+			
+			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map0_bound)) {
+				rlj.textures.DrawTextureRec(map1, map1_rectangle, new Vector2(15,50), Color.RAYWHITE);
+				if (rlj.core.IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+					resetMap();
+				}
+			}
+			
+			
+			if (rlj.shapes.CheckCollisionPointRec(mouse_position, exit0_bound)) {
+				rlj.textures.DrawTextureRec(exit1, exit1_rectangle, new Vector2(15,120), Color.RAYWHITE);
 				if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
 					rlj.core.WindowShouldClose();
 					return;
