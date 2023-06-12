@@ -7,7 +7,7 @@ import static com.raylib.java.core.input.Keyboard.KEY_SPACE;
 import java.util.ArrayList;
 
 public class screenManager {
-
+    private static UI ui;
     // Types and Structures Definition
     enum GameScreen {
         LOGO,
@@ -24,7 +24,8 @@ public class screenManager {
         long offset = 0;
         float timer = 0;
         Raylib rlj = new Raylib(screen_width, screen_height, "raylib [core] example - basic screen manager");
-        map map = new map(screen_width, screen_height, screen_width / 5, 32);
+        ui = new UI(screen_width, screen_height, rlj);
+        Map map = new Map(screen_width, screen_height, screen_width / 5, 32);
     	if(levelCleared()){
 			level++;
 			for(int i = 0; i < level; i++){
@@ -69,7 +70,7 @@ public class screenManager {
                 case GAMEPLAY:
                     // TODO: Update GAMEPLAY screen variables here!
                 	if (rlj.core.IsKeyReleased(KEY_SPACE)) {
-        				map = new map(screen_width, screen_height, screen_width / 5, 32);
+        				map = new Map(screen_width, screen_height, screen_width / 5, 32);
         				timer = 0;
         			}
         			timer += 0.2f;
@@ -103,11 +104,8 @@ public class screenManager {
                     break;
                 case TITLE:
                     // TODO: Draw TITLE screen here!
-                    rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.GREEN);
-                    rlj.text.DrawText("TITLE SCREEN", 20, 20, 40, Color.DARKGREEN);
-                    rlj.text.DrawText("PRESS ENTER or TAP to JUMP to GAMEPLAY SCREEN", 120, 220, 20, Color.DARKGREEN);
-                    break;
-                    
+                	ui.renderTitleScreen();
+                	break;
                 case GAMEPLAY:
                     // TODO: Draw GAMEPLAY screen here!
                     rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.PURPLE);

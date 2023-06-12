@@ -20,7 +20,7 @@ public class Enemy {
         enemyThread.start();
     }
     int i = 0;
-    public void draw(Raylib rlj, map map, float timer){
+    public void draw(Raylib rlj, Map map, float timer){
 
         ArrayList<Vector2> points = map.points;
         //checks if stage has been reset

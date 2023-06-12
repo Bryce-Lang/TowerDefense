@@ -67,7 +67,7 @@ public class Main {
 
 			mouse_position = GetMousePosition();
 
-			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map_bound)) {
+			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map1_bound)) {
 				if (rlj.core.IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
 					game_state.regen_map();
 				}
@@ -100,7 +100,7 @@ public class Main {
 			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map0_bound)) {
 				rlj.textures.DrawTextureRec(map1, map1_rectangle, new Vector2(15,50), Color.RAYWHITE);
 				if (rlj.core.IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-					resetMap();
+					//resetMap();
 				}
 			}
 			
