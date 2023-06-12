@@ -13,7 +13,8 @@ public class screenManager {
         LOGO,
         TITLE,
         GAMEPLAY,
-        ENDING
+        ENDING,
+        HELP
     }
     static ArrayList<Enemy> enemies = new ArrayList<>();
     public static void main(String[] args) {
@@ -63,10 +64,19 @@ public class screenManager {
                     // TODO: Update TITLE screen variables here!
 
                     // Press enter to change to GAMEPLAY screen
-                    if (isKeyPressed(rlj, KEY_ENTER) || isMouseButtonPressed(rlj,MouseButton.MOUSE_BUTTON_LEFT)) { // 13 is the key code for Enter key
-                        currentScreen = GameScreen.GAMEPLAY;
+                 
+                    
+                    String buttonClicked = ui.handleInput();
+                    if (!buttonClicked.isEmpty()) {
+                        if (buttonClicked.equals("PLAY")) {
+                            currentScreen = GameScreen.GAMEPLAY;
+                        } else if (buttonClicked.equals("HELP")) {
+                            currentScreen = GameScreen.HELP;
+                        }
                     }
+                    
                     break;
+
                 case GAMEPLAY:
                     // TODO: Update GAMEPLAY screen variables here!
                 	if (rlj.core.IsKeyReleased(KEY_SPACE)) {
@@ -84,6 +94,18 @@ public class screenManager {
 
                     // Press enter to return to TITLE screen
                     if (isKeyPressed(rlj, KEY_ENTER) || isMouseButtonPressed(rlj,MouseButton.MOUSE_BUTTON_LEFT)) { // 13 is the key code for Enter key
+                        currentScreen = GameScreen.TITLE;
+                    }
+                    break;
+                case HELP:
+                	// TODO: Update LOGO screen variables here!
+                	if(framesCounter > 120) {
+                		framesCounter = 0; 
+                	}
+                	framesCounter++;    // Count frames
+
+                    // Wait for 2 seconds (120 frames) before jumping to TITLE screen
+                    if (framesCounter > 120) {
                         currentScreen = GameScreen.TITLE;
                     }
                     break;
@@ -105,6 +127,7 @@ public class screenManager {
                 case TITLE:
                     // TODO: Draw TITLE screen here!
                 	ui.renderTitleScreen();
+                	
                 	break;
                 case GAMEPLAY:
                     // TODO: Draw GAMEPLAY screen here!
@@ -126,6 +149,11 @@ public class screenManager {
                     rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.BLUE);
                     rlj.text.DrawText("ENDING SCREEN", 20, 20, 40, Color.DARKBLUE);
                     rlj.text.DrawText("PRESS ENTER or TAP to RETURN to TITLE SCREEN", 120, 220, 20, Color.DARKBLUE);
+                    break;
+                case HELP:
+                    // TODO: Draw LOGO screen here!
+                    rlj.text.DrawText("pressed help", 20, 20, 40, Color.GOLD);
+                    rlj.text.DrawText("WAIT for 2 SECONDS...", 290, 220, 20, Color.GRAY);
                     break;
                 default:
                     break;
