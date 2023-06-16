@@ -51,7 +51,7 @@ public class Map {
 	// returns Vector2 location on the map given a float percentage 0.0-1.0
 	public Vector2 get_loc(float by) {
 		if (by > 1.0f || by < 0.0f) {
-			return new Vector2(0f, 0f);
+			return new Vector2(-10000, -10000);
 		}
 		
 		int index = (int) ((map_length / average_len) * by);

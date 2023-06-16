@@ -31,6 +31,5 @@ public class Tower {
 	public void draw(Raylib rlj) {
 		rlj.shapes.DrawCircleV(coord, 10f, Color.DARKPURPLE);
 		rlj.shapes.DrawCircleV(coord, 3f, Color.SKYBLUE);
-		rlj.shapes.DrawCircleLines((int) coord.x,(int) coord.y, range, Color.LIGHTGRAY);
 	}
 }

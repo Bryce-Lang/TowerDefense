@@ -15,7 +15,7 @@ public class Enemy {
 	public float progress;
 	
 	public Enemy(int set_speed, int set_health) {
-		coord = new Vector2(-10, -10);
+		coord = new Vector2(-10000, -10000);
 		speed = set_speed;
 		total_health = set_health;
 		curr_health = set_health;
@@ -24,14 +24,14 @@ public class Enemy {
 	
 	public Enemy(float set_prog, int set_speed, int set_health) {
 		progress = set_prog;
-		coord = new Vector2(-10, -10);
+		coord = new Vector2(-10000, -10000);
 		speed = set_speed;
 		total_health = set_health;
 		curr_health = set_health;
 	}
 	
 	public Enemy(Vector2 set_coord, int set_speed, int set_health) {
-		coord = new Vector2(-10, -10);
+		coord = new Vector2(-10000, -10000);
 		speed = set_speed;
 		total_health = set_health;
 		curr_health = set_health;

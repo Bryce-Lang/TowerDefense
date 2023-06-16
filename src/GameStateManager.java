@@ -2,6 +2,9 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import static com.raylib.java.core.input.Mouse.MouseButton.MOUSE_BUTTON_LEFT;
+import static com.raylib.java.core.input.Mouse.MouseButton.MOUSE_BUTTON_RIGHT;
+import static com.raylib.java.core.input.Keyboard.KEY_R;
+import static com.raylib.java.core.input.Keyboard.KEY_D;
 import com.raylib.java.Raylib;
 import com.raylib.java.core.Color;
 import com.raylib.java.core.rCore;
@@ -33,6 +36,9 @@ public class GameStateManager {
 	
 	// Stores towers
 	public ArrayList<Tower> towers = new ArrayList<>();
+	
+	// currently highlighted tower for upgrades
+	private int h_tower_ind = -1;
 	
 	// current level; used to generate enemy types and number
 	public int level = 0;
@@ -76,6 +82,27 @@ public class GameStateManager {
 		for (int i = 0; i < towers.size(); ++i) {
 			towers.get(i).draw(rlj);
 		}
+		
+		if (h_tower_ind != -1) {
+			rlj.shapes.DrawCircleLines((int) towers.get(h_tower_ind).coord.x,
+									   (int) towers.get(h_tower_ind).coord.y,
+									   towers.get(h_tower_ind).range,
+									   Color.LIGHTGRAY);
+			rlj.shapes.DrawCircleLines((int) towers.get(h_tower_ind).coord.x,
+									   (int) towers.get(h_tower_ind).coord.y,
+									   11,
+									   Color.YELLOW);
+			rlj.text.DrawText("Damage: " + towers.get(h_tower_ind).damage,
+							  (int) towers.get(h_tower_ind).coord.x - 30,
+							  (int) towers.get(h_tower_ind).coord.y - 24,
+							  10,
+							  Color.RAYWHITE);
+			rlj.text.DrawText("Range: " + towers.get(h_tower_ind).range / 10,
+							  (int) towers.get(h_tower_ind).coord.x - 30,
+							  (int) towers.get(h_tower_ind).coord.y - 36,
+							  10,
+							  Color.RAYWHITE);
+		}
 	}
 	
 	// takes in frames counter to determine whether towers should shoot
@@ -94,7 +121,32 @@ public class GameStateManager {
 			if (valid_pos) {
 				player_money -= tower_cost;
 				towers.add(new Tower(rCore.GetMousePosition()));
+				h_tower_ind = towers.size() - 1;
 			}
+		}
+		
+		// select highlighted tower for upgrades
+		if (rlj.core.IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+			if (h_tower_ind == -1) {
+				h_tower_ind = 0;
+			}
+			for (int i = 0; i < towers.size(); ++i) {
+				if (Raymath.Vector2Distance(rCore.GetMousePosition(), towers.get(h_tower_ind).coord) > 
+					Raymath.Vector2Distance(rCore.GetMousePosition(), towers.get(i).coord)) {
+					
+					h_tower_ind = i;
+				}
+			}
+		}
+		
+		// select upgrade to buy
+		if (rlj.core.IsKeyPressed(KEY_R) && player_money >=  ((towers.get(h_tower_ind).range / 2) - 40)) {
+			player_money -= ((towers.get(h_tower_ind).range / 2) - 40);
+			towers.get(h_tower_ind).range +=  Math.sqrt(towers.get(h_tower_ind).range) + 5;
+		}
+		if (rlj.core.IsKeyPressed(KEY_D) && player_money >= (towers.get(h_tower_ind).damage * 2)) {
+			player_money -= (towers.get(h_tower_ind).damage * 2);
+			towers.get(h_tower_ind).damage += Math.sqrt(towers.get(h_tower_ind).damage);
 		}
 		
 		// start next level when no enemies remain
@@ -148,6 +200,7 @@ public class GameStateManager {
 	}
 	
 	private void update_enemies() {
+		
 		for (int i = 0; i < enemies.size(); ++i) {
 			// tells enemies to update their progress based on their speed
 			enemies.get(i).step();
@@ -163,11 +216,12 @@ public class GameStateManager {
 	}
 	
 	private void level_up() {
+		
 		++level;
 		Random rand = new Random();
-		for (int i = 0; i < level; ++i) {
+		for (int i = 0; i < level * 2; ++i) {
 			int speed = rand.nextInt((level + 1) * 10) + 20;
-			enemies.add(new Enemy(-(i / 1000f), Math.min(speed, 100), (((level + 1) * 100) + 200) - (speed * 10)));
+			enemies.add(new Enemy(-(i / 400f), Math.min(speed, 100), (((level + 1) * 100) + 200) - (speed * 10)));
 		}
 	}
 	
