@@ -5,7 +5,6 @@ import com.raylib.java.core.Color;
 import com.raylib.java.raymath.Vector2;
 import com.raylib.java.raymath.Raymath;
 
-// stores coordinate data for each point in the map
 public class Map {
 	private int screen_width;
 	private int screen_height;
@@ -19,8 +18,17 @@ public class Map {
 	// Total length of the map
 	public float map_length = 0;
 	
+	// normal distance between points in the map (speed and slow sections have twice and half distances respectively)
+	private float norm_len = 0;
+	
 	// average distance between points in the map
-	private float average_dist = 0;
+	private float average_len = 0;
+	
+	// stores slow section locations and lengths
+	private int[][] slows;
+	
+	// stores speed section locations and lengths
+	private int[][] speeds;
 	
 	public Map(int in_screen_width, int in_screen_height, int in_menu_margin) {
 		screen_width = in_screen_width;
@@ -43,26 +51,44 @@ public class Map {
 	// returns Vector2 location on the map given a float percentage 0.0-1.0
 	public Vector2 get_loc(float by) {
 		if (by > 1.0f || by < 0.0f) {
-			return new Vector2(0, 0);
+			return new Vector2(0f, 0f);
 		}
-		int index = (int) ((map_length / average_dist) * by);
-		float point_dist = ((map_length * by) % average_dist) / average_dist;
+		
+		int index = (int) ((map_length / average_len) * by);
+		if (index > (points.size() - 2)) {
+			index = points.size() - 2;
+		}
+		float point_dist = ((map_length * by) % average_len) / average_len;
+		
 		return Raymath.Vector2Lerp(points.get(index), points.get(index + 1), point_dist);
 	}
 	
 	public void draw(Raylib rlj) {
 		for (int i = 0; i < points.size(); ++i) {
+			//rlj.shapes.DrawCircleV(points.get(i), 2, Color.PURPLE);
 			// draw lines between points
-			if (i > 0)
+			if (i > 0) {
 				rlj.shapes.DrawLineV(points.get(i-1) , points.get(i), Color.BLUE);
+				
+				for (int j = 0; j < slows.length; ++j) {
+					if (i > slows[j][0] && i < (slows[j][0] + slows[j][1])) {
+						rlj.shapes.DrawLineV(points.get(i-1) , points.get(i), Color.RED);
+					}
+				}
+				
+				for (int j = 0; j < speeds.length; ++j) {
+					if (i > speeds[j][0] && i < (speeds[j][0] + speeds[j][1])) {
+						rlj.shapes.DrawLineV(points.get(i-1) , points.get(i), Color.GREEN);
+					}
+				}
+			}
 		}
 	}
 	
 	// designed to be called only at instantiation
 	private void generate_map() {
-		int map_gen_attempts = 0;
 		// attempts to create a valid map (no overlap or off screen points) 10000 times, ends when one is made
-		do {
+		for (int i = 0; i < 10000; ++i) {
 			// points array initialized with given point number + 2 for entrance and exit
 			points = new ArrayList<>();
 			for (int j = 0; j < (point_num + 2); ++j) {
@@ -82,12 +108,18 @@ public class Map {
 			points = connect_points(entrance, exit, gen_points);
 			
 			points = smooth(points);
+				
+			if (!verify_points()) {
+				continue;
+			}
+		
+			points = normalize_points(points);
+		
+			points = add_obstacles(points);
 			
-		} while (!verify_points() && ++map_gen_attempts < 10000);
-		
-		points = normalize_points(points);
-		
-		// TODO: add bridges that slow and speed enemies, add portals that teleport enemies
+			if (!(points.get(0).x == -1f))
+				break;
+		}
 	}
 	
 	// checks for overlaps and out of bounds points
@@ -96,8 +128,7 @@ public class Map {
 		for (int j = 0; j < points.size() - 4; j += 3) {
 			for (int k = 0; k < points.size() - 4; k += 4) {
 				// checks if points that are more than 10 indices away in the arraylist are closer than 10 units
-				if (Raymath.Vector2Distance(points.get(j), points.get(k)) < 20.0f &&
-						Math.abs(j - k) > 10) {
+				if (Raymath.Vector2Distance(points.get(j), points.get(k)) < 20.0f && Math.abs(j - k) > 10) {
 					
 					return false;
 				}
@@ -331,7 +362,7 @@ public class Map {
 			
 			// iterates between current point and the next, adding roughly evenly spread points between them
 			// completely arbitrary calculation, generates points pretty well though
-			int segs = (int) ((p_distance + point_num) / (Math.sqrt(point_num + 32))) + 6;
+			int segs = (int) ((p_distance + point_num) / (Math.sqrt(point_num + 8))) + 6;
 			for (int j = 1; j < segs; ++j) {
 				smoothed_points.add(smooth_lerp(in_points, i, j * (1.0f / segs), close_control, far_control));
 			}
@@ -344,7 +375,7 @@ public class Map {
 		return smoothed_points;
 	}
 	
-	// estimates control points using a custom algorithm based on the Catmull-Rom velocity estimation
+	// estimates control points using a custom algorithm based on Catmull-Rom velocity estimation
 	private Vector2 est_close_control(ArrayList<Vector2> in_points, int ind) {
 		// use Catmull-Rom velocity estimation too estimate control point vector from current point
 		Vector2 close_control = Raymath.Vector2Subtract(in_points.get(ind + 1), in_points.get(ind - 1));
@@ -452,23 +483,215 @@ public class Map {
 		// stores distance from each point to the next
 		ArrayList<Float> point_dists = new ArrayList<>();
 		for (int i = 0; i < (points.size() - 1); ++i) {
-			float point_dist = Raymath.Vector2Distance(in_points.get(i), in_points.get(i + 1));
-			point_dists.add(point_dist);
-			map_length += point_dist;
+			float curr_len = Raymath.Vector2Distance(in_points.get(i), in_points.get(i + 1));
+			point_dists.add(curr_len);
+			map_length += curr_len;
 		}
-		average_dist = map_length / in_points.size();
+		norm_len = map_length / in_points.size();
 		for (int i = 0; i < in_points.size(); ++i) {
-			float point_dist = average_dist * i;
+			float curr_dist = norm_len * i;
 			int j = 0;
-			while (point_dist > point_dists.get(j)) {
-				point_dist -= point_dists.get(j);
+			while (curr_dist > point_dists.get(j)) {
+				curr_dist -= point_dists.get(j);
 				++j;
+				if (j >= point_dists.size())
+					break;
 			}
-			norm_points.add(Raymath.Vector2Lerp(in_points.get(j), in_points.get(j + 1), point_dist / point_dists.get(j)));
+			if (j < point_dists.size()) {
+				norm_points.add(Raymath.Vector2Lerp(in_points.get(j), in_points.get(j + 1), curr_dist / point_dists.get(j)));
+			}
 		}
+		
+		// exit point added manually
 		norm_points.add(in_points.get(in_points.size() - 1));
 		
+		// additional point added after exit point to allow enemies to smoothly exit
+		norm_points.add(reflect(in_points.get(in_points.size() - 2), in_points.get(in_points.size() - 1)));
+		
 		return norm_points;
+	}
+	
+	
+	// adds obstacles on the map that slow down, speed up, and teleport enemies
+	private ArrayList<Vector2> add_obstacles(ArrayList<Vector2> in_points) {
+		
+		// if obstacle placement fails, the map is set to a single point at (-1, -1) which will result in a rejection by the map generation function
+		boolean obstacle_placement_success = true;
+		
+		ArrayList<Vector2> new_points = new ArrayList<>();
+		
+		Random rand = new Random();
+		
+		// total length in number of points of speed and slow sections; they are equal so map difficulty doesn't vary too much
+		int obs_len = rand.nextInt(in_points.size() / 6) + (in_points.size() / 10);
+		
+		// determines number sections the slow and speed obstacles are broken into
+		int slow_cnt = 2 + (rand.nextInt(obs_len / 50) * 2);
+		int speed_cnt = 2 + (rand.nextInt(obs_len / 50) * 2);
+		
+		slows = new int[slow_cnt][2];
+		speeds = new int[speed_cnt][2];
+		
+		// sets slow section lengths
+		for (int i = 0; i < slow_cnt; ++i) {
+			// remaining slow length
+			int rem_len = obs_len;
+			for (int j = 0; j < i; ++j)
+				rem_len -= slows[j][1];
+			
+			// even split of remaining length between remaining slow sections
+			int rem_prop = rem_len / (slow_cnt - i);
+			
+			if (i != (slow_cnt - 1)) {
+				slows[i][1] = rem_prop + (rand.nextInt(rem_prop / (slow_cnt - i)));
+			} else {
+				slows[i][1] = rem_len;
+			}
+		}
+		
+		// sets location of slow sections
+		for (int i = 0; i < slow_cnt; ++i) {
+			for (int attempts = 0; attempts < 1000; ++attempts) {
+				boolean valid = true;
+				
+				slows[i][0] = rand.nextInt(in_points.size() - (in_points.size() / 10)) + (in_points.size() / 20);
+				
+				// checks if current slow section intersects other slow sections
+				for (int j = 0; j < i; ++j) {
+					if (!(slows[i][0] > (slows[j][0] + slows[j][1]) || (slows[i][0] + slows[i][1]) < slows[j][0])) {
+						valid = false;
+					}
+				}
+				
+				// checks if current slow section goes off the end of the map
+				if ((slows[i][0] + slows[i][1]) >= (in_points.size() - 2)) {
+					valid = false;
+				}
+				
+				// if no intersections found, stop regenerating slow section location
+				if (valid)
+					break;
+				
+				// if no location is found after 1000 attempts, declare failure
+				if (attempts == 999) {
+					obstacle_placement_success = false;
+				}
+			}
+		}
+		
+		// sets speed section lengths
+		for (int i = 0; i < speed_cnt; ++i) {
+			// remaining speed length
+			int rem_len = obs_len;
+			for (int j = 0; j < i; ++j)
+				rem_len -= speeds[j][1];
+			
+			// even split of remaining length between remaining speed sections
+			int rem_prop = rem_len / (speed_cnt - i);
+			
+			if (i != (speed_cnt - 1)) {
+				speeds[i][1] = rem_prop + (rand.nextInt(rem_prop / (speed_cnt - i)));
+			} else {
+				speeds[i][1] = rem_len;
+			}
+		}
+		
+		// sets locations of speed sections
+		for (int i = 0; i < speed_cnt; ++i) {
+			for (int attempts = 0; attempts < 1000; ++attempts) {
+				boolean valid = true;
+				
+				speeds[i][0] = rand.nextInt(in_points.size() - (in_points.size() / 10)) + (in_points.size() / 20);
+				
+				// checks if current speed section intersects other speed sections
+				for (int j = 0; j < i; ++j) {
+					if (!(speeds[i][0] > (speeds[j][0] + speeds[j][1]) || (speeds[i][0] + speeds[i][1]) < speeds[j][0])) {
+						valid = false;
+					}
+				}
+				
+				// checks if current speed section intersects slow sections
+				for (int j = 0; j < slow_cnt; ++j) {
+					if (!(speeds[i][0] > (slows[j][0] + slows[j][1]) || (speeds[i][0] + speeds[i][1]) < slows[j][0])) {
+						valid = false;
+					}
+				}
+				
+				// checks if current speed section goes off the end of the map
+				if ((speeds[i][0] + speeds[i][1]) >= (in_points.size() - 2)) {
+					valid = false;
+				}
+				
+				// if no intersections found, stop regenerating slow section location
+				if (valid)
+					break;
+				
+				// if no location is found after 1000 attempts, declare failure
+				if (attempts == 999) {
+					obstacle_placement_success = false;
+				}
+			}
+		}
+		
+		// if obstacle placement fails, returns an arraylist with only (-1, -1)
+		if (!obstacle_placement_success) {
+			ArrayList<Vector2> fail = new ArrayList<>();
+			fail.add(new Vector2(-1, -1));
+			return fail;
+		}
+		
+		// to replace slows and speeds; their indices are changed when map is updated, so their new indices are marked here
+		int[] new_slows_ind = new int[slow_cnt];
+		int[] new_speeds_ind = new int[speed_cnt];
+		
+		// compiles slow and speed sections into new_points
+		for (int i = 0; i < in_points.size(); ++i) {
+			// add the current point to new_points
+			new_points.add(in_points.get(i));
+			
+			// check if current point is in a slow section; if it is, add extra point between current point and next
+			for (int j = 0; j < slow_cnt; ++j) {
+				if (i == slows[j][0]) {
+					new_slows_ind[j] = new_points.size();
+				}
+				if (i >= slows[j][0] && (i < (slows[j][0] + slows[j][1]))) {
+					new_points.add(Raymath.Vector2Lerp(in_points.get(i), in_points.get(i + 1), 0.5f));
+					break;
+				}
+			}
+			
+			// check if current point is in a speed section; if it is, skip the next point
+			for (int j = 0; j < speed_cnt; ++j) {
+				if (i == speeds[j][0]) {
+					new_speeds_ind[j] = new_points.size();
+				}
+				if ((i >= speeds[j][0]) && (i < (speeds[j][0] + speeds[j][1]))) {
+					++i;
+					break;
+				}
+			}
+		}
+		
+		// set slow indices and length to indices in new_points
+		for (int i = 0; i < slow_cnt; ++i) {
+			slows[i][0] = new_slows_ind[i];
+			slows[i][1] = slows[i][1] * 2;
+		}
+		// set speed indices to indices in new_points
+		for (int i = 0; i < speed_cnt; ++i) {
+			speeds[i][0] = new_speeds_ind[i];
+			speeds[i][1] = speeds[i][1] / 2;
+		}
+		
+		// update total map length
+		map_length = 0f;
+		for (int i = 0; i < (new_points.size() - 1); ++i) {
+			map_length += Raymath.Vector2Distance(new_points.get(i), new_points.get(i + 1));
+		}
+		
+		average_len = map_length / new_points.size();
+		
+		return new_points;
 	}
 	
 	// "reflects" one point over another

@@ -7,6 +7,7 @@ import com.raylib.java.raymath.Vector2;
 import com.raylib.java.shapes.Rectangle;
 import com.raylib.java.textures.Texture2D;
 
+import static com.raylib.java.core.input.Keyboard.KEY_F;
 import static com.raylib.java.core.input.Keyboard.KEY_SPACE;
 import static com.raylib.java.core.input.Mouse.MouseButton.MOUSE_BUTTON_LEFT;
 import static com.raylib.java.core.rCore.*;
@@ -47,8 +48,10 @@ public class Main {
 		//if(levelCleared()){
 		//	resetMap();
 		//}
-
-		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj);
+		
+		Database db = new Database();
+		
+		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj, db);
 		
 		//checks if the previous level is cleared. Increments level counter, and adds in a new set of enemies.
 		//if(levelCleared()){
@@ -60,18 +63,26 @@ public class Main {
 		//	}
 		//}
 		
+		int game_tick = 0;
+		
 		rlj.core.SetTargetFPS(60);
 		
 		// main game loop- runs once every frame until window is closed with x button or ESC key
 		while (!rlj.core.WindowShouldClose()) {  // Detect window close button or ESC key
-
+			
+			++game_tick;
+			
+			if (rlj.core.IsKeyPressed(KEY_F)) rlj.core.ToggleFullscreen();  // TODO delete
+			
 			mouse_position = GetMousePosition();
 
 			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map1_bound)) {
-				if (rlj.core.IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
-					game_state.regen_map();
-				}
+				
 			}
+			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map0_bound)) {
+				
+			}
+
 			if (rlj.core.IsKeyReleased(KEY_SPACE)) {
 				game_state.regen_map();
 			}
@@ -83,15 +94,14 @@ public class Main {
 			
 			rlj.core.ClearBackground(Color.BLACK);
 			
-			game_state.draw();
+			game_state.run_frame(game_tick);
 			
 			// draw menu on left of screen
 			rlj.shapes.DrawRectangle(0, 0, screen_width / 5, screen_height, Color.DARKGRAY);
-			//rlj.text.DrawText("reserved for menu", 5, 0, 15, Color.RAYWHITE);
-			//rlj.text.DrawText("press [space] to \ngenerate new map", 5, 50, 15, Color.RAYWHITE);
-			rlj.text.DrawText("Level: " + level, 200, 5, 15, Color.RAYWHITE);
 			
-			rlj.text.DrawText("Time: " + timer, 200, 55, 15, Color.RAYWHITE);
+			//rlj.text.DrawText("Level: " + level, 200, 5, 15, Color.RAYWHITE);
+			
+			//rlj.text.DrawText("Time: " + timer, 200, 55, 15, Color.RAYWHITE);
 			
 			rlj.textures.DrawTextureRec(map0, map0_rectangle, new Vector2(15,50), Color.RAYWHITE);
 			rlj.textures.DrawTextureRec(exit0, exit0_rectangle, new Vector2(15,120), Color.RAYWHITE);
@@ -112,6 +122,11 @@ public class Main {
 					return;
 				}
 			}
+			
+			rlj.text.DrawText("Health: " + Math.max(game_state.player_health, 0), 20, 30, 20, Color.RAYWHITE);
+			rlj.text.DrawText("Wealth: " + game_state.player_money, 20, 70, 20, Color.RAYWHITE);
+			rlj.text.DrawText("Level: " + game_state.level, 20, 110, 20, Color.RAYWHITE);
+			rlj.text.DrawFPS(20, 180);
 
 			//map.draw(rlj);
 			//let enemies run along the path

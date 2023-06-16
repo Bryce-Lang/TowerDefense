@@ -1,3 +1,64 @@
+
+import com.raylib.java.raymath.Vector2;
+import com.raylib.java.Raylib;
+import com.raylib.java.core.Color;
+
+public class Enemy {
+	public Vector2 coord;
+	
+	public int speed;
+	
+	public int total_health;
+	
+	public int curr_health;
+	
+	public float progress;
+	
+	public Enemy(int set_speed, int set_health) {
+		coord = new Vector2(-10, -10);
+		speed = set_speed;
+		total_health = set_health;
+		curr_health = set_health;
+		progress = 0f;
+	}
+	
+	public Enemy(float set_prog, int set_speed, int set_health) {
+		progress = set_prog;
+		coord = new Vector2(-10, -10);
+		speed = set_speed;
+		total_health = set_health;
+		curr_health = set_health;
+	}
+	
+	public Enemy(Vector2 set_coord, int set_speed, int set_health) {
+		coord = new Vector2(-10, -10);
+		speed = set_speed;
+		total_health = set_health;
+		curr_health = set_health;
+		progress = 0f;
+	}
+	
+	public void draw(Raylib rlj) {
+		rlj.shapes.DrawEllipse((int) coord.x,(int) coord.y, 12, 8, Color.MAROON);
+		rlj.shapes.DrawEllipse((int) coord.x + 5,(int) coord.y, 2, 4, Color.BLACK);
+		rlj.shapes.DrawEllipse((int) coord.x - 5,(int) coord.y, 2, 4, Color.BLACK);
+		if (total_health != curr_health) {
+			float health_bar_width = (float) Math.sqrt(total_health);
+			float remaining_bar_width = (float) Math.sqrt(curr_health);
+			
+			rlj.shapes.DrawRectangle((int) (coord.x - (health_bar_width / 2f)),(int) coord.y - 14,(int) health_bar_width, 4, Color.RED);
+			
+			rlj.shapes.DrawRectangle((int) (coord.x - (health_bar_width / 2f)),(int) coord.y - 14,(int)  remaining_bar_width, 4, Color.GREEN);
+		}
+	}
+	
+	public void step() {
+		progress += (speed / 100000f);
+	}
+}
+
+
+/* deprecated enemy class
 import com.raylib.java.Raylib;
 import com.raylib.java.core.Color;
 import com.raylib.java.raymath.Vector2;
@@ -46,3 +107,4 @@ public class Enemy {
     }
 
 }
+*/
