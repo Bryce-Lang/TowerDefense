@@ -4,6 +4,10 @@ import com.raylib.java.Raylib;
 import com.raylib.java.core.Color;
 
 public class Enemy {
+	
+	private static final int DEF_SPEED = 80;
+	private static final int DEF_HEALTH = 200;
+	
 	public Vector2 coord;
 	
 	public int speed;
@@ -13,6 +17,14 @@ public class Enemy {
 	public int curr_health;
 	
 	public float progress;
+	
+	public Enemy() {
+		coord = new Vector2(-10000, -10000);
+		speed = DEF_SPEED;
+		total_health = DEF_HEALTH;
+		curr_health = DEF_HEALTH;
+		progress = 0f;
+	}
 	
 	public Enemy(int set_speed, int set_health) {
 		coord = new Vector2(-10000, -10000);

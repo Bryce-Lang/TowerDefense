@@ -56,7 +56,7 @@ public class GameStateManager {
 		player_health = 100;
 		player_money = 100;
 		
-		//load_defaults();
+		load_defaults();
 	}
 	
 	public GameStateManager(int width, int height, Raylib in_rlj, Database in_db, int level) {
@@ -69,7 +69,7 @@ public class GameStateManager {
 		player_health = 100;
 		player_money = 100;
 		
-		//load_defaults();
+		load_defaults();
 	}
 	
 	public void draw() {
@@ -83,6 +83,7 @@ public class GameStateManager {
 			towers.get(i).draw(rlj);
 		}
 		
+		// draw highlight on selected tower
 		if (h_tower_ind != -1) {
 			rlj.shapes.DrawCircleLines((int) towers.get(h_tower_ind).coord.x,
 									   (int) towers.get(h_tower_ind).coord.y,
@@ -93,12 +94,12 @@ public class GameStateManager {
 									   11,
 									   Color.YELLOW);
 			rlj.text.DrawText("Damage: " + towers.get(h_tower_ind).damage,
-							  (int) towers.get(h_tower_ind).coord.x - 30,
+							  (int) towers.get(h_tower_ind).coord.x - 25,
 							  (int) towers.get(h_tower_ind).coord.y - 24,
 							  10,
 							  Color.RAYWHITE);
 			rlj.text.DrawText("Range: " + towers.get(h_tower_ind).range / 10,
-							  (int) towers.get(h_tower_ind).coord.x - 30,
+							  (int) towers.get(h_tower_ind).coord.x - 25,
 							  (int) towers.get(h_tower_ind).coord.y - 36,
 							  10,
 							  Color.RAYWHITE);
@@ -120,7 +121,7 @@ public class GameStateManager {
 			}
 			if (valid_pos) {
 				player_money -= tower_cost;
-				towers.add(new Tower(rCore.GetMousePosition()));
+				towers.add(new Tower(rCore.GetMousePosition(), def_tower.range, def_tower.damage));
 				h_tower_ind = towers.size() - 1;
 			}
 		}
@@ -139,14 +140,12 @@ public class GameStateManager {
 			}
 		}
 		
-		// select upgrade to buy
-		if (rlj.core.IsKeyPressed(KEY_R) && player_money >=  ((towers.get(h_tower_ind).range / 2) - 40)) {
-			player_money -= ((towers.get(h_tower_ind).range / 2) - 40);
-			towers.get(h_tower_ind).range +=  Math.sqrt(towers.get(h_tower_ind).range) + 5;
+		if (rlj.core.IsKeyPressed(KEY_R)) {
+			upgrade_h_range();
 		}
-		if (rlj.core.IsKeyPressed(KEY_D) && player_money >= (towers.get(h_tower_ind).damage * 2)) {
-			player_money -= (towers.get(h_tower_ind).damage * 2);
-			towers.get(h_tower_ind).damage += Math.sqrt(towers.get(h_tower_ind).damage);
+		
+		if (rlj.core.IsKeyPressed(KEY_D)) {
+			upgrade_h_damage();
 		}
 		
 		// start next level when no enemies remain
@@ -206,7 +205,7 @@ public class GameStateManager {
 			enemies.get(i).step();
 			// updates enemy coords based on their new progress
 			enemies.get(i).coord = map.get_loc(enemies.get(i).progress);
-			// checks if enemies have reached the exit; if so, reduce player health and 
+			// checks if enemies have reached the exit; if so, reduce player health and remove enemy
 			if (enemies.get(i).progress >= 1.0) {
 				player_health -= 3;
 				enemies.remove(i);
@@ -220,14 +219,39 @@ public class GameStateManager {
 		++level;
 		Random rand = new Random();
 		for (int i = 0; i < level * 2; ++i) {
-			int speed = rand.nextInt((level + 1) * 10) + 20;
-			enemies.add(new Enemy(-(i / 400f), Math.min(speed, 100), (((level + 1) * 100) + 200) - (speed * 10)));
+			int speed = rand.nextInt((level + 1) * 5) + 30;
+			Enemy n = new Enemy((float) -((Math.sqrt((float) i + rand.nextFloat())) / 80f),
+						speed,
+						(((level + 1) * 100) + 300) - (speed * 10));
+			n.speed = Math.min((int) (n.speed * 0.8f), 200);
+			
+			enemies.add(n);
+			
 		}
 	}
 	
 	private void load_defaults() {
-		def_enemy = new Enemy(new Vector2(-10, -10), db.getEnemySpeed("1"), db.getEnemyHealth("1"));
-		def_tower = new Tower(new Vector2(-10, -10), db.getTowerDamage("1"), db.getTowerRange("1"));
+		if (db.getEnemyHealth("1") != -1) {
+			def_enemy = new Enemy(new Vector2(-10, -10), db.getEnemySpeed("1"), db.getEnemyHealth("1"));
+			def_tower = new Tower(new Vector2(-10, -10), db.getTowerRange("1"), db.getTowerDamage("1"));
+		} else {
+			def_enemy = new Enemy();
+			def_tower = new Tower();
+		}
+	}
+	
+	public void upgrade_h_range() {
+		if (player_money >=  (towers.get(h_tower_ind).range - (def_tower.range - 10))) {
+			player_money -= (towers.get(h_tower_ind).range - (def_tower.range - 10));
+			towers.get(h_tower_ind).upgrade_range();
+		}
+	}
+	
+	public void upgrade_h_damage() {
+		if (player_money >= (towers.get(h_tower_ind).damage * 2)) {
+			player_money -= (towers.get(h_tower_ind).damage * 2);
+			towers.get(h_tower_ind).upgrade_damage();
+		}
 	}
 	
 	public void regen_map() {

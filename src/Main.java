@@ -72,7 +72,7 @@ public class Main {
 			
 			++game_tick;
 			
-			if (rlj.core.IsKeyPressed(KEY_F)) rlj.core.ToggleFullscreen();  // TODO delete
+			//if (rlj.core.IsKeyPressed(KEY_F)) rlj.core.ToggleFullscreen();  // TODO delete
 			
 			mouse_position = GetMousePosition();
 
