@@ -4,6 +4,10 @@ import com.raylib.java.core.input.Mouse.MouseButton;
 import static com.raylib.java.core.input.Keyboard.KEY_ENTER;
 import static com.raylib.java.core.input.Keyboard.KEY_SPACE;
 
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
+
 import java.util.ArrayList;
 
 public class screenManager {
@@ -30,8 +34,8 @@ public class screenManager {
     	if(levelCleared()){
 			level++;
 			for(int i = 0; i < level; i++){
-				Enemy enemy = new Enemy(100, map.points.get(0).x, map.points.get(0).y, offset, 500);
-				enemies.add(enemy);
+				//Enemy enemy = new Enemy(100, map.points.get(0).x, map.points.get(0).y, offset, 500);
+				//enemies.add(enemy);
 				offset += 10;
 			}
 		}
@@ -44,11 +48,10 @@ public class screenManager {
 
         final double targetFPS = 60.0;
         final double frameTime = 1.0 / targetFPS;
-
-        // Main game loop
+        SoundManager.playBackgroundMusic(-25.0f);
         while (!rlj.core.WindowShouldClose()) {  // Detect window close button or ESC key
             double startTime = System.currentTimeMillis() / 1000.0;
-
+            
             // Update
             switch(currentScreen) {
                 case LOGO:
@@ -64,7 +67,7 @@ public class screenManager {
                     // TODO: Update TITLE screen variables here!
 
                     // Press enter to change to GAMEPLAY screen
-                 
+                	
                     
                     String buttonClicked = ui.handleInput();
                     if (!buttonClicked.isEmpty()) {
@@ -140,7 +143,7 @@ public class screenManager {
         			map.draw(rlj);
         			//let enemies run along the path
         			for(int i = 0; i < enemies.size(); i++){
-        				enemies.get(i).draw(rlj, map, timer);
+        				//enemies.get(i).draw(rlj, map, timer);
         			}
                     rlj.text.DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, Color.MAROON);
                     break;
