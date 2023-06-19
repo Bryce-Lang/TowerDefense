@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 import java.util.Random;
 
+import java.sql.SQLException;
+
 import static com.raylib.java.core.input.Mouse.MouseButton.MOUSE_BUTTON_LEFT;
 import static com.raylib.java.core.input.Mouse.MouseButton.MOUSE_BUTTON_RIGHT;
 import static com.raylib.java.core.input.Keyboard.KEY_R;
@@ -54,7 +56,7 @@ public class GameStateManager {
 		rlj = in_rlj;
 		db = in_db;
 		player_health = 100;
-		player_money = 100;
+		player_money = 1000;
 		
 		load_defaults();
 	}
@@ -67,7 +69,7 @@ public class GameStateManager {
 		rlj = in_rlj;
 		db = in_db;
 		player_health = 100;
-		player_money = 100;
+		player_money = 1000;
 		
 		load_defaults();
 	}
@@ -218,6 +220,7 @@ public class GameStateManager {
 		
 		++level;
 		Random rand = new Random();
+		// add normal enemies
 		for (int i = 0; i < level * 2; ++i) {
 			int speed = rand.nextInt((level + 1) * 5) + 30;
 			Enemy n = new Enemy((float) -((Math.sqrt((float) i + rand.nextFloat())) / 80f),
@@ -226,18 +229,37 @@ public class GameStateManager {
 			n.speed = Math.min((int) (n.speed * 0.8f), 200);
 			
 			enemies.add(n);
+		}
+		// add fast enemies
+		for (int i = 0; i < level - 5; ++i) {
+			int speed = rand.nextInt((level + 1) * 10) + 200;
+			Enemy n = new FastEnemy((float) -(((float) i + rand.nextFloat()) / 30f),
+						speed,
+						(((level + 1) * 60) + 300) - (speed));
+			n.speed = Math.min((int) (n.speed * 0.8f), 400);
 			
+			enemies.add(n);
+		}
+		// add boss enemies
+		for (int i = 0; i < Math.log(level - 20); ++i) {
+			int speed = rand.nextInt(level) + 30;
+			Enemy n = new BossEnemy((float) -((Math.sqrt((float) i + rand.nextFloat())) / 40f),
+						speed,
+						(((level + 1) * 600) + 300) - (speed * 10));
+			n.speed = Math.min((int) (n.speed * 0.8f), 200);
+			
+			enemies.add(n);
 		}
 	}
 	
 	private void load_defaults() {
-		if (db.getEnemyHealth("1") != -1) {
-			def_enemy = new Enemy(new Vector2(-10, -10), db.getEnemySpeed("1"), db.getEnemyHealth("1"));
-			def_tower = new Tower(new Vector2(-10, -10), db.getTowerRange("1"), db.getTowerDamage("1"));
-		} else {
+		//if() {
+		//	def_enemy = new Enemy(new Vector2(-10, -10), db.getEnemySpeed("1"), db.getEnemyHealth("1"));
+		//	def_tower = new Tower(new Vector2(-10, -10), db.getTowerRange("1"), db.getTowerDamage("1"));
+		//} else {
 			def_enemy = new Enemy();
 			def_tower = new Tower();
-		}
+		//}
 	}
 	
 	public void upgrade_h_range() {
