@@ -194,6 +194,7 @@ public class screenManager {
                 	break;
                 case GAMEPLAY:
                 	game_state.run_frame(game_tick);
+                	rlj.core.ClearBackground(Color.BLACK);
                 	// draw menu on left of screen
         			rlj.shapes.DrawRectangle(0, 0, screen_width / 5, screen_height, Color.DARKGRAY);
         			
