@@ -3,7 +3,13 @@ import com.raylib.java.core.Color;
 import com.raylib.java.core.input.Mouse.MouseButton;
 import static com.raylib.java.core.input.Keyboard.KEY_ENTER;
 import static com.raylib.java.core.input.Keyboard.KEY_SPACE;
+import static com.raylib.java.core.input.Mouse.MouseButton.MOUSE_BUTTON_LEFT;
 
+import com.raylib.java.raymath.Vector2;
+import com.raylib.java.textures.Texture2D;
+import static com.raylib.java.textures.rTextures.LoadTexture;
+import com.raylib.java.shapes.Rectangle;
+import static com.raylib.java.core.rCore.*;
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
@@ -20,18 +26,55 @@ public class screenManager {
         ENDING,
         HELP
     }
-    static ArrayList<Enemy> enemies = new ArrayList<>();
+    private static ArrayList<Enemy> enemies = new ArrayList<>();
     public static void main(String[] args) {
         // Initialization
+    	Vector2 mouse_position = new Vector2(0.0f,0.0f);
         final int screen_width = 800;
         final int screen_height = 450;
-        int level = 3;
-        long offset = 0;
         float timer = 0;
-        Raylib rlj = new Raylib(screen_width, screen_height, "raylib [core] example - basic screen manager");
+		int level = 3;
+		long offset = 0;
+        Raylib rlj = new Raylib(screen_width, screen_height, "Tower Defense");
         ui = new UI(screen_width, screen_height, rlj);
+        Texture2D map0 = LoadTexture("map0.png");
+		Rectangle map0_rectangle = new Rectangle(0,0,map0.width,map0.height);
+		Rectangle map0_bound = new Rectangle(15,50,map0.width,map0.height);
+		Texture2D map1 = LoadTexture("map1.png");
+		Rectangle map1_rectangle = new Rectangle(0,0,map1.width,map1.height);
+		Rectangle map1_bound = new Rectangle(15,50,map1.width,map1.height);
+
+
+		Texture2D exit0 = LoadTexture("exit0.png");
+		Rectangle exit0_rectangle = new Rectangle(0,0,exit0.width,exit0.height);
+		Rectangle exit0_bound = new Rectangle(15,120,exit0.width,exit0.height);
+		Texture2D exit1 = LoadTexture("exit1.png");
+		Rectangle exit1_rectangle = new Rectangle(0,0,exit1.width,exit1.height);
+		Rectangle exit1_bound = new Rectangle(15,50,exit1.width,exit1.height);
+        
+		//Initial game setup
+		Database db = new Database();
+		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj, db);
+		//checks if the previous level is cleared. Increments level counter, and adds in a new set of enemies.
+		/*if(levelCleared()){
+			level++;
+			for(int i = 0; i < level; i++){
+				Enemy enemy = new Enemy(100, game_state.map.points.get(0).x, game_state.map.points.get(0).y, offset);
+				enemies.add(enemy);
+				offset += 10;
+			}
+		}*/
+		int game_tick = 0;
+		rlj.core.SetTargetFPS(60);
+		//if(levelCleared()){
+		//		resetMap();
+		//	}
+			
+        /*
         Map map = new Map(screen_width, screen_height, screen_width / 5, 32);
-    	if(levelCleared()){
+    	
+        
+        if(levelCleared()){
 			level++;
 			for(int i = 0; i < level; i++){
 				//Enemy enemy = new Enemy(100, map.points.get(0).x, map.points.get(0).y, offset, 500);
@@ -39,8 +82,10 @@ public class screenManager {
 				offset += 10;
 			}
 		}
+		*/
         GameScreen currentScreen = GameScreen.LOGO;
-
+        
+        
         // TODO: Initialize all required variables and load all required data here!
        // map map = new map(screenWidth, screenHeight, screenWidth / 5, 15);
 
@@ -49,9 +94,11 @@ public class screenManager {
         final double targetFPS = 60.0;
         final double frameTime = 1.0 / targetFPS;
         SoundManager.playBackgroundMusic(-25.0f);
+        
         while (!rlj.core.WindowShouldClose()) {  // Detect window close button or ESC key
             double startTime = System.currentTimeMillis() / 1000.0;
-            
+            ++game_tick;
+            mouse_position = GetMousePosition();
             // Update
             switch(currentScreen) {
                 case LOGO:
@@ -82,6 +129,19 @@ public class screenManager {
 
                 case GAMEPLAY:
                     // TODO: Update GAMEPLAY screen variables here!
+                	
+                	if (rlj.shapes.CheckCollisionPointRec(mouse_position, map1_bound)) {
+        				
+        			}
+        			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map0_bound)) {
+        				
+        			}
+                	
+                	if (rlj.core.IsKeyReleased(KEY_SPACE)) {
+        				game_state.regen_map();
+        			}
+                	timer += 0.001f;
+                	/*
                 	if (rlj.core.IsKeyReleased(KEY_SPACE)) {
         				map = new Map(screen_width, screen_height, screen_width / 5, 32);
         				timer = 0;
@@ -90,7 +150,7 @@ public class screenManager {
                     // Press enter to change to ENDING screen
                     if (isKeyPressed(rlj, KEY_ENTER) || isMouseButtonPressed(rlj,MouseButton.MOUSE_BUTTON_LEFT)) { // 13 is the key code for Enter key
                         currentScreen = GameScreen.ENDING;
-                    }
+                    }*/
                     break;
                 case ENDING:
                     // TODO: Update ENDING screen variables here!
@@ -133,6 +193,39 @@ public class screenManager {
                 	
                 	break;
                 case GAMEPLAY:
+                	game_state.run_frame(game_tick);
+                	// draw menu on left of screen
+        			rlj.shapes.DrawRectangle(0, 0, screen_width / 5, screen_height, Color.DARKGRAY);
+        			
+        			//rlj.text.DrawText("Level: " + level, 200, 5, 15, Color.RAYWHITE);
+        			
+        			//rlj.text.DrawText("Time: " + timer, 200, 55, 15, Color.RAYWHITE);
+        			
+        			rlj.textures.DrawTextureRec(map0, map0_rectangle, new Vector2(15,50), Color.RAYWHITE);
+        			rlj.textures.DrawTextureRec(exit0, exit0_rectangle, new Vector2(15,120), Color.RAYWHITE);
+
+        			
+        			if (rlj.shapes.CheckCollisionPointRec(mouse_position, map0_bound)) {
+        				rlj.textures.DrawTextureRec(map1, map1_rectangle, new Vector2(15,50), Color.RAYWHITE);
+        				if (rlj.core.IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+        					//resetMap();
+        				}
+        			}
+        			
+        			
+        			if (rlj.shapes.CheckCollisionPointRec(mouse_position, exit0_bound)) {
+        				rlj.textures.DrawTextureRec(exit1, exit1_rectangle, new Vector2(15,120), Color.RAYWHITE);
+        				if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+        					rlj.core.WindowShouldClose();
+        					return;
+        				}
+        			}
+        			
+        			rlj.text.DrawText("Health: " + Math.max(game_state.player_health, 0), 20, 30, 20, Color.RAYWHITE);
+        			rlj.text.DrawText("Wealth: " + game_state.player_money, 20, 70, 20, Color.RAYWHITE);
+        			rlj.text.DrawText("Level: " + game_state.level, 20, 110, 20, Color.RAYWHITE);
+        			rlj.text.DrawFPS(20, 180);
+        			/*
                     // TODO: Draw GAMEPLAY screen here!
                     rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.PURPLE);
                     //rlj.text.DrawText("GAMEPLAY SCREEN", 20, 20, 40, Color.MAROON);
@@ -146,6 +239,7 @@ public class screenManager {
         				//enemies.get(i).draw(rlj, map, timer);
         			}
                     rlj.text.DrawText("PRESS ENTER or TAP to JUMP to ENDING SCREEN", 130, 220, 20, Color.MAROON);
+                    */
                     break;
                 case ENDING:
                     // TODO: Draw ENDING screen here!
@@ -198,4 +292,6 @@ public class screenManager {
 			return true;
 		return false;
 	}
+   
+
 }

@@ -17,7 +17,8 @@ public class Main {
 	private static ArrayList<Enemy> enemies = new ArrayList<>();
 	
 	public static void main(String[] args) {
-		
+		screenManager.main(args);
+		/*
 		Vector2 mouse_position = new Vector2(0.0f,0.0f);
 		
 		// window size, independent of actual screen size
@@ -54,15 +55,16 @@ public class Main {
 		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj, db);
 		
 		//checks if the previous level is cleared. Increments level counter, and adds in a new set of enemies.
-		//if(levelCleared()){
-		//	level++;
-		//	for(int i = 0; i < level; i++){
-		//		Enemy enemy = new Enemy(100, game_state.map.points.get(0).x, game_state.map.points.get(0).y, offset);
-		//		enemies.add(enemy);
-		//		offset += 10;
-		//	}
-		//}
-		
+		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj, db);
+		if(levelCleared()){
+			level++;
+			for(int i = 0; i < level; i++){
+				Enemy enemy = new Enemy(100, game_state.map.points.get(0).x, game_state.map.points.get(0).y, offset);
+				enemies.add(enemy);
+				offset += 10;
+			}
+		}
+		/*
 		int game_tick = 0;
 		
 		rlj.core.SetTargetFPS(60);
@@ -135,9 +137,10 @@ public class Main {
 			//}
 			
 			rlj.core.EndDrawing();
+			*/
 			//---------------------------------------------------------------------------
 		}
-	}
+	
 	// method to check if enemies array list is empty.
 	public static boolean levelCleared(){
 		if(enemies.size() == 0)
@@ -145,8 +148,8 @@ public class Main {
 		return false;
 	}
 	
-	/*function to reset all variables and generate a new map.
-	public static void resetMap(){
+	//function to reset all variables and generate a new map.
+	/*public static void resetMap(){
 		map = new Map(screen_width, screen_height, screen_width / 5, 32);
 		timer = 0;
 		offset = 0;
