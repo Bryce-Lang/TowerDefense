@@ -8,6 +8,8 @@ public class Tower {
 	private static final int DEF_RANGE = 80;
 	private static final int DEF_DAMAGE = 4;
 	
+	public String id;
+	
 	public Vector2 coord;
 	
 	public int range;
@@ -18,18 +20,29 @@ public class Tower {
 		coord = new Vector2(0, 0);
 		range = DEF_RANGE;
 		damage = DEF_DAMAGE;
+		id = "single";
 	}
 	
 	public Tower(Vector2 set_coord) {
 		coord = set_coord;
 		range = DEF_RANGE;
 		damage = DEF_DAMAGE;
+		id = "single";
 	}
 	
 	public Tower(Vector2 set_coord, int set_range, int set_damage) {
 		coord = set_coord;
 		range = set_range;
 		damage = set_damage;
+		id = "single";
+	}
+	
+	public int get_range_upgrade_cost() {
+		return range - (DEF_RANGE - 10);
+	}
+	
+	public int get_damage_upgrade_cost() {
+		return damage * 2;
 	}
 	
 	public void upgrade_range() {

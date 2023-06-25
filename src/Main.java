@@ -17,8 +17,7 @@ public class Main {
 	private static ArrayList<Enemy> enemies = new ArrayList<>();
 	
 	public static void main(String[] args) {
-		screenManager.main(args);
-		/*
+		
 		Vector2 mouse_position = new Vector2(0.0f,0.0f);
 		
 		// window size, independent of actual screen size
@@ -55,7 +54,7 @@ public class Main {
 		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj, db);
 		
 		//checks if the previous level is cleared. Increments level counter, and adds in a new set of enemies.
-		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj, db);
+		/*
 		if(levelCleared()){
 			level++;
 			for(int i = 0; i < level; i++){
@@ -64,7 +63,7 @@ public class Main {
 				offset += 10;
 			}
 		}
-		/*
+		*/
 		int game_tick = 0;
 		
 		rlj.core.SetTargetFPS(60);
@@ -128,8 +127,10 @@ public class Main {
 			rlj.text.DrawText("Health: " + Math.max(game_state.player_health, 0), 20, 30, 20, Color.RAYWHITE);
 			rlj.text.DrawText("Wealth: " + game_state.player_money, 20, 70, 20, Color.RAYWHITE);
 			rlj.text.DrawText("Level: " + game_state.level, 20, 110, 20, Color.RAYWHITE);
-			rlj.text.DrawFPS(20, 180);
-
+			rlj.text.DrawFPS(20, 140);
+			
+			game_state.draw_gui();
+			
 			//map.draw(rlj);
 			//let enemies run along the path
 			//for(int i = 0; i < enemies.size(); i++){
@@ -137,9 +138,10 @@ public class Main {
 			//}
 			
 			rlj.core.EndDrawing();
-			*/
+			
 			//---------------------------------------------------------------------------
 		}
+	}
 	
 	// method to check if enemies array list is empty.
 	public static boolean levelCleared(){

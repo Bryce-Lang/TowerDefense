@@ -28,9 +28,9 @@ public class BossEnemy extends Enemy{
 			float health_bar_width = (float) Math.sqrt(total_health);
 			float remaining_bar_width = (float) Math.sqrt(curr_health);
 			
-			rlj.shapes.DrawRectangle((int) (coord.x - (health_bar_width / 2f)),(int) coord.y - 14,(int) health_bar_width, 4, Color.RED);
+			rlj.shapes.DrawRectangle((int) (coord.x - (health_bar_width / 2f)),(int) coord.y - 22,(int) health_bar_width, 4, Color.RED);
 			
-			rlj.shapes.DrawRectangle((int) (coord.x - (health_bar_width / 2f)),(int) coord.y - 14,(int)  remaining_bar_width, 4, Color.GREEN);
+			rlj.shapes.DrawRectangle((int) (coord.x - (health_bar_width / 2f)),(int) coord.y - 22,(int)  remaining_bar_width, 4, Color.GREEN);
 		}
 	}
 }

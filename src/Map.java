@@ -30,6 +30,10 @@ public class Map {
 	// stores speed section locations and lengths
 	private int[][] speeds;
 	
+	private static final Color RAMPART = new Color(150, 150, 150, 255);
+	private static final Color RAMPART_GAP = new Color(42, 42, 42, 255);
+	private static final Color BASE_CENTER = new Color(16, 16, 16, 255);
+	
 	public Map(int in_screen_width, int in_screen_height, int in_menu_margin) {
 		screen_width = in_screen_width;
 		screen_height = in_screen_height;
@@ -43,7 +47,7 @@ public class Map {
 		screen_height = in_screen_height;
 		menu_margin = in_menu_margin;
 		point_num = in_point_num;
-		if (point_num > 32)
+		if (point_num > 32 || point_num < 1)
 			point_num = 32;
 		generate_map();
 	}
@@ -83,6 +87,11 @@ public class Map {
 				}
 			}
 		}
+		rlj.shapes.DrawCircleV(points.get(points.size() - 2), 20, RAMPART_GAP);
+		for (int i = 1; i < 16; i += 2) {
+			rlj.shapes.DrawCircleSector(points.get(points.size() - 2), 20, ((360 / 16) * i) + 12, ((360 / 16) * (i + 1)) + 12, 1, RAMPART);
+		}
+		rlj.shapes.DrawCircleV(points.get(points.size() - 2), 14, BASE_CENTER);
 	}
 	
 	// designed to be called only at instantiation
