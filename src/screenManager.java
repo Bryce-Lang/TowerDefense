@@ -18,6 +18,7 @@ import java.util.ArrayList;
 
 public class screenManager {
     private static UI ui;
+    
     // Types and Structures Definition
     enum GameScreen {
         LOGO,
@@ -52,7 +53,9 @@ public class screenManager {
 		Rectangle exit1_rectangle = new Rectangle(0,0,exit1.width,exit1.height);
 		Rectangle exit1_bound = new Rectangle(15,50,exit1.width,exit1.height);
         
+		
 		//Initial game setup
+	
 		Database db = new Database();
 		GameStateManager game_state = new GameStateManager(screen_width, screen_height, rlj, db);
 		//checks if the previous level is cleared. Increments level counter, and adds in a new set of enemies.
@@ -104,10 +107,11 @@ public class screenManager {
                 case LOGO:
                     // TODO: Update LOGO screen variables here!
                     framesCounter++;    // Count frames
-
+                    ui.loadAssets();
                     // Wait for 2 seconds (120 frames) before jumping to TITLE screen
                     if (framesCounter > 120) {
                         currentScreen = GameScreen.TITLE;
+                        
                     }
                     break;
                 case TITLE:
@@ -183,9 +187,12 @@ public class screenManager {
 
             switch(currentScreen) {
                 case LOGO:
-                    // TODO: Draw LOGO screen here!
+                    ui.renderLogoScreen();
+                	// TODO: Draw LOGO screen here!
+                	/*
                     rlj.text.DrawText("LOGO SCREEN", 20, 20, 40, Color.GOLD);
                     rlj.text.DrawText("WAIT for 2 SECONDS...", 290, 220, 20, Color.GRAY);
+                    */
                     break;
                 case TITLE:
                     // TODO: Draw TITLE screen here!

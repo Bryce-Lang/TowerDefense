@@ -1,8 +1,11 @@
+import static com.raylib.java.textures.rTextures.LoadTexture;
+
 import com.raylib.java.Raylib;
 import com.raylib.java.core.Color;
 import com.raylib.java.core.input.Mouse.MouseButton;
 import com.raylib.java.shapes.Rectangle;
 import com.raylib.java.shapes.rShapes;
+import com.raylib.java.textures.Texture2D;
 
 
 public class UI {
@@ -11,7 +14,7 @@ public class UI {
     private Raylib rlj;
     private Button playButton;
     private Button helpButton;
-
+    private Texture2D logoImage;
     public UI(int screenWidth, int screenHeight, Raylib rlj) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
@@ -35,10 +38,21 @@ public class UI {
         
     }
     
+    public void loadAssets() {
+    	//Load logo
+    	logoImage = LoadTexture("image/logo.png");
+    	
+    }
+    
     public void renderHelpScreen() {
         // Draw UI elements specific to the help screen
     }
-    
+    public void renderLogoScreen() {
+        // Draw UI elements specific to the Logo screen
+    	rlj.textures.DrawTexture(logoImage, 100, 0, Color.WHITE);
+        
+         
+    }
     public void renderGameplayScreen() {
         rlj.shapes.DrawRectangle(0, 0, screenWidth, screenHeight, Color.PURPLE);
         // Draw UI elements specific to the gameplay screen
