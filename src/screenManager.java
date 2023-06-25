@@ -120,7 +120,7 @@ public class screenManager {
                     // Press enter to change to GAMEPLAY screen
                 	
                     
-                    String buttonClicked = ui.handleInput();
+                    String buttonClicked = ui.handleInput(currentScreen);
                     if (!buttonClicked.isEmpty()) {
                         if (buttonClicked.equals("PLAY")) {
                             currentScreen = GameScreen.GAMEPLAY;
@@ -165,16 +165,15 @@ public class screenManager {
                     }
                     break;
                 case HELP:
-                	// TODO: Update LOGO screen variables here!
-                	if(framesCounter > 120) {
-                		framesCounter = 0; 
-                	}
-                	framesCounter++;    // Count frames
-
-                    // Wait for 2 seconds (120 frames) before jumping to TITLE screen
-                    if (framesCounter > 120) {
-                        currentScreen = GameScreen.TITLE;
-                    }
+                	// TODO: Update Help screen variables here!
+                	 String buttonClicked1 = ui.handleInput(currentScreen);
+                	 //System.out.println("Button clicked: " + buttonClicked1);
+                     if (!buttonClicked1.isEmpty()) {
+                         if (buttonClicked1.equals("EXIT")) {
+                             currentScreen = GameScreen.TITLE;
+                         } 
+                     }
+                     
                     break;
                 default:
                     break;
@@ -258,8 +257,7 @@ public class screenManager {
                     break;
                 case HELP:
                     // TODO: Draw LOGO screen here!
-                    rlj.text.DrawText("pressed help", 20, 20, 40, Color.GOLD);
-                    rlj.text.DrawText("WAIT for 2 SECONDS...", 290, 220, 20, Color.GRAY);
+                	ui.renderHelpScreen();
                     break;
                 default:
                     break;
