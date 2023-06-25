@@ -30,8 +30,8 @@ public class screenManager {
     public static void main(String[] args) {
         // Initialization
     	Vector2 mouse_position = new Vector2(0.0f,0.0f);
-        final int screen_width = 800;
-        final int screen_height = 450;
+        final int screen_width = 960;
+        final int screen_height = 540;
         float timer = 0;
 		int level = 3;
 		long offset = 0;
@@ -226,6 +226,7 @@ public class screenManager {
         			rlj.text.DrawText("Wealth: " + game_state.player_money, 20, 70, 20, Color.RAYWHITE);
         			rlj.text.DrawText("Level: " + game_state.level, 20, 110, 20, Color.RAYWHITE);
         			rlj.text.DrawFPS(20, 180);
+        			game_state.draw_gui();
         			/*
                     // TODO: Draw GAMEPLAY screen here!
                     rlj.shapes.DrawRectangle(0, 0, screen_width, screen_height, Color.PURPLE);

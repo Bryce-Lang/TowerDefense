@@ -19,7 +19,8 @@ public class Main {
 	public static void main(String[] args) {
 		
 		Vector2 mouse_position = new Vector2(0.0f,0.0f);
-		
+		screenManager.main(args);
+		/*
 		// window size, independent of actual screen size
 		final int screen_width = 960;
 		final int screen_height = 540;
@@ -63,7 +64,7 @@ public class Main {
 				offset += 10;
 			}
 		}
-		*/
+		
 		int game_tick = 0;
 		
 		rlj.core.SetTargetFPS(60);
@@ -138,9 +139,9 @@ public class Main {
 			//}
 			
 			rlj.core.EndDrawing();
-			
+			*/
 			//---------------------------------------------------------------------------
-		}
+		//}
 	}
 	
 	// method to check if enemies array list is empty.
